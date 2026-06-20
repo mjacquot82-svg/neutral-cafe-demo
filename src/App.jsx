@@ -16,33 +16,17 @@ export default function App() {
   const [orderStatus, setOrderStatus] = useState(null);
   const [adminMode, setAdminMode] = useState(false);
 
-  const products = useMemo(() => {
-    return mockProducts.filter((product) => product.category === selectedCategory);
-  }, [selectedCategory]);
-
+  const products = useMemo(() => mockProducts.filter((product) => product.category === selectedCategory), [selectedCategory]);
   const featuredProducts = mockProducts.filter((product) => product.featured);
   const total = getCartTotal(cart);
 
-  async function submitOrder() {
-    const order = {
-      items: cart,
-      pickupTime,
-      total,
-      businessName: businessConfig.businessName
-    };
+  async function submitOrder() { return; }
 
-    const payment = await confirmPayment(order);
-    const clover = await createCloverOrder({ ...order, payment });
-    await notifyStaff({ ...order, payment, clover });
+  return <main><section id="menu" className="section"><div className="filters">{businessConfig.categories.map((category)=><button key={category} className={selectedCategory===category?"filter active":"filter"} onClick={()=>setSelectedCategory(category)}>{category}</button>)}</div><div className="productGrid">{products.map((product)=><ProductCard key={product.id} product={product} onAdd={()=>setCart(addToCart(cart,product))} />)}</div></section></main>;
+}
 
-    setOrderStatus({
-      message: "Order submitted",
-      pickupTime,
-      total,
-      cloverOrderId: clover.cloverOrderId
-    });
+function ProductCard({ product, onAdd }) {
+ return <article className="productCard"><div className="productInfo"><span className="category">{product.category}</span><h3>{product.name}</h3><button onClick={onAdd}>Add</button></div></article>;
+}
 
-    setCart([]);
-  }
-
-  return 
+function OwnerPreview(){ return null; }
