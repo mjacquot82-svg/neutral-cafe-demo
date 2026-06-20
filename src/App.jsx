@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Coffee, Leaf, ShoppingBag, Clock, Settings } from "lucide-react";
+import { Clock, Flag, Settings, ShoppingBag, UtensilsCrossed } from "lucide-react";
 import { businessConfig } from "./config/businessConfig";
 import { mockProducts } from "./data/mockProducts";
 import { mockPromotions } from "./data/mockPromotions";
@@ -51,10 +51,10 @@ export default function App() {
       <header className="topbar">
         <div className="brand">
           <div className="brandMark">
-            <Leaf size={22} />
+            <Flag size={22} />
           </div>
           <div>
-            <strong>{businessConfig.businessName}</strong>
+            <strong>{businessConfig.shortName}</strong>
             <span>Preorder</span>
           </div>
         </div>
@@ -69,9 +69,9 @@ export default function App() {
         <>
           <section className="hero">
             <div>
-              <p className="eyebrow">Coffee • Plants • Pickup</p>
-              <h1>{businessConfig.tagline}</h1>
-              <p>{businessConfig.description}</p>
+              <p className="eyebrow">Golf • Curling • Clubhouse Dining</p>
+              <h1>Welcome to the Walkerton Golf &amp; Curling Club Restaurant</h1>
+              <p>Order ahead from the clubhouse before your round, at the turn, or after the game</p>
               <div className="heroActions">
                 <a href="#menu" className="primaryButton">{businessConfig.primaryAction}</a>
                 <a href="#specials" className="secondaryButton">{businessConfig.secondaryAction}</a>
@@ -79,19 +79,28 @@ export default function App() {
             </div>
 
             <div className="heroCard">
-              <Coffee size={38} />
-              <h3>Order ahead</h3>
-              <p>Choose a drink, pick a time, and grab it when ready.</p>
+              <UtensilsCrossed size={38} />
+              <h3>Clubhouse pickup</h3>
+              <p>Choose your meal, pick a time, and collect it from the restaurant when ready.</p>
             </div>
           </section>
 
           <section id="specials" className="promo">
-            <div>
-              <p className="eyebrow">Today’s Feature</p>
-              <h2>{mockPromotions[0].title}</h2>
-              <p>{mockPromotions[0].message}</p>
+            <div className="sectionHeader">
+              <div>
+                <p className="eyebrow">Clubhouse Specials</p>
+                <h2>Featured promotions</h2>
+              </div>
             </div>
-            <button className="secondaryButton">{mockPromotions[0].cta}</button>
+            <div className="promoGrid">
+              {mockPromotions.map((promotion) => (
+                <article className="promoCard" key={promotion.id}>
+                  <h3>{promotion.title}</h3>
+                  <p>{promotion.message}</p>
+                  <button className="secondaryButton">{promotion.cta}</button>
+                </article>
+              ))}
+            </div>
           </section>
 
           <section className="section">
@@ -199,7 +208,7 @@ function ProductCard({ product, onAdd }) {
   return (
     <article className="productCard">
       <div className="imagePlaceholder">
-        <Leaf size={28} />
+        <UtensilsCrossed size={28} />
       </div>
       <div className="productInfo">
         <div>
@@ -229,7 +238,7 @@ function OwnerPreview() {
       <div className="adminGrid">
         <div className="adminCard">
           <h3>Products</h3>
-          <p>Add drinks, bakery items, plants, prices, descriptions, categories, and availability.</p>
+          <p>Add breakfast items, sandwiches, clubhouse meals, prices, descriptions, categories, and availability.</p>
           <button>Add Product</button>
         </div>
 

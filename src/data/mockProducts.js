@@ -54,6 +54,24 @@ export const mockProducts = [
     available: true
   },
   {
+    id: "ninth-hole-wrap",
+    name: "Ninth Hole Chicken Wrap",
+    description: "Grilled chicken, greens, tomato, and house sauce in a flour tortilla.",
+    price: 13.5,
+    category: "Sandwiches & Wraps",
+    featured: true,
+    available: true
+  },
+  {
+    id: "soup-sandwich",
+    name: "Soup & Sandwich",
+    description: "Daily soup served with a half sandwich from the clubhouse kitchen.",
+    price: 12.95,
+    category: "Sandwiches & Wraps",
+    featured: false,
+    available: true
+  },
+  {
     id: "wgcc-burger",
     name: "WGCC Burger",
     description: "Charbroiled beef patty with cheddar, lettuce, tomato, onion, pickle, and house sauce.",
@@ -90,6 +108,15 @@ export const mockProducts = [
     available: true
   },
   {
+    id: "house-garden-salad",
+    name: "House Garden Salad",
+    description: "Fresh greens, cucumber, tomato, carrot, and gold house dressing.",
+    price: 10.95,
+    category: "Salads",
+    featured: true,
+    available: true
+  },
+  {
     id: "fish-and-chips",
     name: "Fish & Chips",
     description: "Beer-battered haddock with fries, tartar sauce, and coleslaw.",
@@ -121,15 +148,6 @@ export const mockProducts = [
     name: "Soft Drink",
     description: "Bottled pop for the course, clubhouse, or curling rink.",
     price: 2.99,
-    category: "Beverages",
-    featured: false,
-    available: true
-  },
-  {
-    id: "coffee",
-    name: "Fresh Coffee",
-    description: "Hot clubhouse coffee, ready for pickup before your round.",
-    price: 2.49,
     category: "Beverages",
     featured: false,
     available: true

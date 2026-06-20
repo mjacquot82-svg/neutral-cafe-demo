@@ -1,7 +1,14 @@
 :root {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #2f3328;
-  background: #f7f0e6;
+  color: #102a1c;
+  background: #f4f7ef;
+  --fairway: #2f6b3f;
+  --forest: #102a1c;
+  --gold: #c9a646;
+  --clubhouse: #f4f7ef;
+  --linen: #fffaf0;
+  --soft-green: #dfe8d7;
+  --line: rgba(16, 42, 28, 0.14);
 }
 
 * {
@@ -11,8 +18,8 @@
 body {
   margin: 0;
   background:
-    radial-gradient(circle at top left, rgba(111, 125, 95, 0.16), transparent 32rem),
-    #f7f0e6;
+    linear-gradient(180deg, rgba(47, 107, 63, 0.16), rgba(244, 247, 239, 0) 22rem),
+    var(--clubhouse);
 }
 
 button, a, select {
@@ -36,9 +43,9 @@ main {
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  background: rgba(247, 240, 230, 0.9);
+  background: rgba(244, 247, 239, 0.94);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(47, 51, 40, 0.1);
+  border-bottom: 1px solid var(--line);
 }
 
 .brand {
@@ -56,18 +63,19 @@ main {
 .brandMark {
   width: 42px;
   height: 42px;
-  border-radius: 999px;
-  background: #6f7d5f;
+  border-radius: 8px;
+  background: var(--forest);
   color: white;
   display: grid;
   place-items: center;
+  box-shadow: inset 0 -3px 0 var(--gold);
 }
 
 .ghostButton, .secondaryButton {
-  border: 1px solid rgba(47, 51, 40, 0.18);
-  background: rgba(255,255,255,0.45);
-  color: #2f3328;
-  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 250, 240, 0.72);
+  color: var(--forest);
+  border-radius: 8px;
   padding: 0.75rem 1rem;
   text-decoration: none;
   display: inline-flex;
@@ -77,9 +85,9 @@ main {
 
 .primaryButton {
   border: 0;
-  background: #6f7d5f;
+  background: var(--fairway);
   color: white;
-  border-radius: 999px;
+  border-radius: 8px;
   padding: 0.85rem 1.1rem;
   text-decoration: none;
   display: inline-flex;
@@ -101,10 +109,10 @@ main {
 }
 
 .hero h1 {
-  font-size: clamp(2.4rem, 7vw, 5rem);
-  line-height: 0.95;
+  font-size: clamp(2.2rem, 6vw, 4.65rem);
+  line-height: 1;
   margin: 0 0 1rem;
-  max-width: 760px;
+  max-width: 900px;
 }
 
 .hero p {
@@ -118,7 +126,7 @@ main {
   letter-spacing: 0.14em;
   font-size: 0.72rem;
   font-weight: 800;
-  color: #6f7d5f;
+  color: var(--fairway);
 }
 
 .heroActions {
@@ -128,11 +136,11 @@ main {
   margin-top: 1.5rem;
 }
 
-.heroCard, .promo, .productCard, .cartPanel, .adminCard, .confirmation {
-  border: 1px solid rgba(47, 51, 40, 0.12);
-  background: rgba(255, 255, 255, 0.55);
-  box-shadow: 0 20px 60px rgba(47, 51, 40, 0.08);
-  border-radius: 28px;
+.heroCard, .promo, .promoCard, .productCard, .cartPanel, .adminCard, .confirmation {
+  border: 1px solid var(--line);
+  background: rgba(255, 250, 240, 0.82);
+  box-shadow: 0 18px 45px rgba(16, 42, 28, 0.08);
+  border-radius: 8px;
 }
 
 .heroCard {
@@ -142,20 +150,51 @@ main {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  color: white;
+  background:
+    linear-gradient(180deg, rgba(16, 42, 28, 0.44), rgba(16, 42, 28, 0.9)),
+    linear-gradient(135deg, var(--fairway), var(--forest));
+  border-color: rgba(201, 166, 70, 0.42);
 }
 
 .promo {
   max-width: 1120px;
   margin: 1rem auto;
   padding: 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
   gap: 1rem;
 }
 
 .promo h2 {
   margin: 0;
+}
+
+.promo .sectionHeader {
+  margin-bottom: 0;
+}
+
+.promoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.promoCard {
+  padding: 1rem;
+  display: grid;
+  align-content: space-between;
+  gap: 0.75rem;
+  background: white;
+}
+
+.promoCard h3 {
+  margin: 0;
+}
+
+.promoCard p {
+  margin: 0;
+  line-height: 1.5;
+  color: rgba(16, 42, 28, 0.74);
 }
 
 .section, .admin {
@@ -184,15 +223,15 @@ main {
 }
 
 .filter {
-  border: 1px solid rgba(47, 51, 40, 0.14);
-  background: rgba(255,255,255,0.45);
+  border: 1px solid var(--line);
+  background: rgba(255, 250, 240, 0.72);
   padding: 0.65rem 0.9rem;
-  border-radius: 999px;
+  border-radius: 8px;
   white-space: nowrap;
 }
 
 .filter.active {
-  background: #2f3328;
+  background: var(--forest);
   color: white;
 }
 
@@ -210,8 +249,10 @@ main {
   height: 160px;
   display: grid;
   place-items: center;
+  color: var(--forest);
   background:
-    linear-gradient(135deg, rgba(111,125,95,0.28), rgba(185,133,100,0.20));
+    linear-gradient(135deg, rgba(47, 107, 63, 0.22), rgba(201, 166, 70, 0.28)),
+    repeating-linear-gradient(90deg, rgba(16, 42, 28, 0.07) 0 1px, transparent 1px 18px);
 }
 
 .productInfo {
@@ -221,7 +262,7 @@ main {
 }
 
 .category {
-  color: #6f7d5f;
+  color: var(--fairway);
   font-size: 0.78rem;
   font-weight: 800;
 }
@@ -231,7 +272,7 @@ main {
 }
 
 .productInfo p {
-  color: rgba(47, 51, 40, 0.72);
+  color: rgba(16, 42, 28, 0.72);
   line-height: 1.45;
 }
 
@@ -243,10 +284,11 @@ main {
 
 .productFooter button, .adminCard button {
   border: 0;
-  background: #b98564;
-  color: white;
-  border-radius: 999px;
+  background: var(--gold);
+  color: var(--forest);
+  border-radius: 8px;
   padding: 0.65rem 0.9rem;
+  font-weight: 800;
 }
 
 .cartPanel {
@@ -273,7 +315,7 @@ main {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  border-top: 1px solid rgba(47, 51, 40, 0.1);
+  border-top: 1px solid var(--line);
   padding: 0.75rem 0;
 }
 
@@ -286,7 +328,8 @@ main {
 .cartItem button {
   border: 0;
   background: transparent;
-  color: #b98564;
+  color: var(--fairway);
+  font-weight: 800;
 }
 
 .pickup {
@@ -299,8 +342,8 @@ main {
 
 .pickup select {
   grid-column: 1 / -1;
-  border: 1px solid rgba(47, 51, 40, 0.14);
-  border-radius: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
   padding: 0.75rem;
   background: white;
 }
@@ -347,11 +390,10 @@ main {
 
   .promo {
     margin: 1rem;
-    flex-direction: column;
-    align-items: flex-start;
   }
 
   .productGrid,
+  .promoGrid,
   .adminGrid {
     grid-template-columns: 1fr;
   }
