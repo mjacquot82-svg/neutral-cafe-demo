@@ -332,34 +332,6 @@ export default function App() {
             <span>Current Estimated Wait: {kitchenWaitTime}</span>
           </section>
 
-          <section id="specials" className="promo">
-            <div className="sectionHeader">
-              <div>
-                <p className="eyebrow">Clubhouse Restaurant</p>
-                <h2>Clubhouse Dining</h2>
-              </div>
-            </div>
-            <div className="clubhouseInfo">
-              <p>
-                Enjoy fresh food and beverages before your round, at the turn, or after the game.
-                Order ahead and pick up when ready.
-              </p>
-              <span>Fresh food, patio seating, and quick pickup from the Walkerton Golf &amp; Curling Club Restaurant.</span>
-            </div>
-
-            {managedPromotions.length > 0 && (
-              <div className="promotionList">
-                {managedPromotions.map((promotion) => (
-                  <article className="promotionCard" key={promotion.id}>
-                    <strong>{promotion.title}</strong>
-                    <p>{promotion.message}</p>
-                    {promotion.cta && <span>{promotion.cta}</span>}
-                  </article>
-                ))}
-              </div>
-            )}
-          </section>
-
           <section id="menu" className="section">
             <div className="sectionHeader">
               <div>
