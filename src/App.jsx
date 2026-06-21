@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Clock, Settings, ShoppingBag, ShoppingCart, UtensilsCrossed, X } from "lucide-react";
 import wgccLogo from "./assets/wgcc-logo.webp";
 import outdoorDiningImage from "./assets/wgcc-outdoor-dining.webp";
+import wgccQrCode from "./assets/wgcc-qr.png";
 import { businessConfig } from "./config/businessConfig";
 import { mockProducts } from "./data/mockProducts";
 import { mockPromotions } from "./data/mockPromotions";
@@ -333,6 +334,14 @@ export default function App() {
           <section className="waitStatus" aria-label="Current kitchen wait time">
             <Clock size={18} />
             <span>Current Estimated Wait: {kitchenWaitTime}</span>
+          </section>
+
+          <section className="qrOrderSection" aria-label="Scan to order">
+            <img src={wgccQrCode} alt="QR code for Walkerton Golf & Curling Club Restaurant ordering" />
+            <div>
+              <p className="eyebrow">Scan to Order</p>
+              <h2>Walkerton Golf & Curling Club Restaurant</h2>
+            </div>
           </section>
 
           <section id="menu" className="section">
