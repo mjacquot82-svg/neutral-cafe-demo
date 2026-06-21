@@ -393,6 +393,7 @@ main {
 .cartItem {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 1rem;
   border-top: 1px solid var(--line);
   padding: 0.75rem 0;
@@ -404,11 +405,28 @@ main {
   opacity: 0.7;
 }
 
-.cartItem button {
-  border: 0;
-  background: transparent;
-  color: var(--fairway);
-  font-weight: 800;
+.quantityControls {
+  display: grid;
+  grid-template-columns: 34px 2.2rem 34px;
+  align-items: center;
+  justify-items: center;
+  gap: 0.25rem;
+}
+
+.quantityControls button {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.82);
+  color: var(--forest);
+  font-weight: 900;
+}
+
+.quantityControls span {
+  font-size: 0.95rem;
+  font-weight: 900;
+  opacity: 1;
 }
 
 .pickup {

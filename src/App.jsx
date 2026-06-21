@@ -48,6 +48,22 @@ export default function App() {
     setCart([]);
   }
 
+  function decreaseQuantity(productId) {
+    const currentItem = cart.find((item) => item.id === productId);
+
+    if (!currentItem) return;
+    if (currentItem.quantity <= 1) {
+      setCart(removeFromCart(cart, productId));
+      return;
+    }
+
+    setCart(
+      cart.map((item) =>
+        item.id === productId ? { ...item, quantity: item.quantity - 1 } : item
+      )
+    );
+  }
+
   return (
     <main>
       <header className="topbar">
@@ -163,9 +179,24 @@ export default function App() {
                   <div className="cartItem" key={item.id}>
                     <div>
                       <strong>{item.name}</strong>
-                      <span>Qty {item.quantity}</span>
                     </div>
-                    <button onClick={() => setCart(removeFromCart(cart, item.id))}>Remove</button>
+                    <div className="quantityControls" aria-label={`${item.name} quantity`}>
+                      <button
+                        type="button"
+                        aria-label={`Decrease ${item.name} quantity`}
+                        onClick={() => decreaseQuantity(item.id)}
+                      >
+                        -
+                      </button>
+                      <span>{item.quantity}</span>
+                      <button
+                        type="button"
+                        aria-label={`Increase ${item.name} quantity`}
+                        onClick={() => setCart(addToCart(cart, item))}
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
                 ))}
 
