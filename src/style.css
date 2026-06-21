@@ -276,6 +276,32 @@ main {
   font-weight: 800;
 }
 
+.promotionList {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.promotionCard {
+  border: 1px solid rgba(16, 42, 28, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.52);
+  padding: 1rem;
+}
+
+.promotionCard p {
+  margin: 0.45rem 0 0.7rem;
+  color: rgba(16, 42, 28, 0.72);
+  line-height: 1.45;
+}
+
+.promotionCard span {
+  color: var(--leaf);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
 .section, .admin {
   max-width: 1120px;
   margin: 0 auto;
@@ -361,7 +387,7 @@ main {
   align-items: center;
 }
 
-.productFooter button, .adminCard button {
+.productFooter button, .adminCard button, .goldButton {
   border: 0;
   background: var(--gold);
   color: var(--forest);
@@ -542,11 +568,181 @@ main {
   padding-top: 3rem;
 }
 
-.adminGrid {
+.adminIntro {
+  max-width: 760px;
+  color: rgba(16, 42, 28, 0.72);
+  line-height: 1.55;
+}
+
+.adminStack {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
   margin-top: 1.5rem;
+}
+
+.adminPanel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.86);
+  box-shadow: 0 18px 45px rgba(16, 42, 28, 0.08);
+  padding: 1.25rem;
+}
+
+.adminPanelHeader {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.adminPanelHeader h2 {
+  margin: 0;
+}
+
+.adminPanelHeader > span {
+  color: var(--leaf);
+  font-weight: 900;
+}
+
+.adminForm {
+  border: 1px solid rgba(16, 42, 28, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.56);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1.4fr 0.65fr 1fr;
+  gap: 0.85rem;
+}
+
+.formField {
+  display: grid;
+  gap: 0.4rem;
+  color: rgba(16, 42, 28, 0.78);
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.formField.wide {
+  grid-column: 1 / -1;
+}
+
+.formField input,
+.formField select,
+.formField textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  color: var(--forest);
+  padding: 0.75rem;
+  resize: vertical;
+}
+
+.adminControls,
+.managerActions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.adminControls {
+  margin-top: 1rem;
+}
+
+.toggleField {
+  display: inline-flex;
+  gap: 0.45rem;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.78);
+  padding: 0.62rem 0.75rem;
+  font-weight: 900;
+}
+
+.mutedButton,
+.managerActions button {
+  border: 1px solid var(--line);
+  background: rgba(255, 250, 240, 0.82);
+  color: var(--forest);
+  border-radius: 8px;
+  padding: 0.62rem 0.75rem;
+  font-weight: 900;
+}
+
+.dangerButton {
+  color: #7d2118 !important;
+  border-color: rgba(125, 33, 24, 0.26) !important;
+  background: rgba(255, 240, 236, 0.86) !important;
+}
+
+.managerList,
+.promotionManagerList {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.managerRow,
+.promotionManagerCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid rgba(16, 42, 28, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.52);
+  padding: 0.85rem;
+}
+
+.promotionManagerCard {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.managerMeta {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.managerMeta span,
+.promotionManagerCard p {
+  color: rgba(16, 42, 28, 0.68);
+}
+
+.promotionManagerCard p {
+  margin: 0.35rem 0 0.55rem;
+  line-height: 1.45;
+}
+
+.promotionManagerCard span {
+  color: var(--leaf);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.statusPill {
+  border-radius: 999px;
+  background: rgba(47, 107, 63, 0.12);
+  color: var(--fairway);
+  padding: 0.35rem 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.statusPill.inactive {
+  background: rgba(125, 33, 24, 0.1);
+  color: #7d2118;
+}
+
+.adminGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
 }
 
 .adminCard {
@@ -591,8 +787,20 @@ main {
   }
 
   .productGrid,
-  .adminGrid {
+  .adminGrid,
+  .promotionList {
     grid-template-columns: 1fr;
+  }
+
+  .formGrid,
+  .managerRow,
+  .promotionManagerCard {
+    grid-template-columns: 1fr;
+  }
+
+  .adminPanelHeader {
+    align-items: start;
+    flex-direction: column;
   }
 
   .cartPanel,
