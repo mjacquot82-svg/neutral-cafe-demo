@@ -190,45 +190,12 @@ main {
 }
 
 .heroCard {
-  padding: 1rem;
   min-height: 520px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  color: white;
-  background:
-    linear-gradient(180deg, rgba(16, 42, 28, 0.08), rgba(16, 42, 28, 0.78));
+  background-color: var(--soft-green);
   background-size: cover;
   background-position: center;
   border-color: rgba(201, 166, 70, 0.42);
   overflow: hidden;
-}
-
-.heroCardContent {
-  background: rgba(16, 42, 28, 0.78);
-  border: 1px solid rgba(255, 250, 240, 0.24);
-  border-radius: 8px;
-  padding: 1.25rem;
-  backdrop-filter: blur(12px);
-}
-
-.heroCardContent h3 {
-  margin: 0.8rem 0 0.35rem;
-}
-
-.heroCardContent p {
-  color: rgba(255, 255, 255, 0.86);
-  font-size: 0.95rem;
-  margin: 0 0 1rem;
-}
-
-.heroCardContent span {
-  display: inline-flex;
-  gap: 0.35rem;
-  align-items: center;
-  color: rgba(255, 255, 255, 0.88);
-  font-size: 0.86rem;
-  font-weight: 700;
 }
 
 .waitStatus {

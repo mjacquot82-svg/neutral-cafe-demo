@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Clock, MapPin, Settings, ShoppingBag, ShoppingCart, UtensilsCrossed, X } from "lucide-react";
+import { ArrowLeft, Clock, Settings, ShoppingBag, ShoppingCart, UtensilsCrossed, X } from "lucide-react";
 import wgccLogo from "./assets/wgcc-logo.webp";
 import outdoorDiningImage from "./assets/wgcc-outdoor-dining.webp";
 import { businessConfig } from "./config/businessConfig";
@@ -327,17 +327,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="heroCard" style={{ backgroundImage: `url(${outdoorDiningImage})` }}>
-              <div className="heroCardContent">
-                <UtensilsCrossed size={34} />
-                <h3>Easy outdoor ordering</h3>
-                <p>Use the upper deck service window, take a pager, and settle in while your order is prepared.</p>
-                <span>
-                  <MapPin size={15} />
-                  164 Bruce Rd 2, Walkerton
-                </span>
-              </div>
-            </div>
+            <div className="heroCard" style={{ backgroundImage: `url(${outdoorDiningImage})` }} />
           </section>
 
           <section className="waitStatus" aria-label="Current kitchen wait time">
