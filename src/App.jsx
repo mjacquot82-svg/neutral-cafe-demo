@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Clock, MapPin, Settings, ShoppingBag, UtensilsCrossed, X } from "lucide-react";
+import { ArrowLeft, Clock, MapPin, Settings, ShoppingBag, ShoppingCart, UtensilsCrossed, X } from "lucide-react";
 import wgccLogo from "./assets/wgcc-logo.webp";
 import outdoorDiningImage from "./assets/wgcc-outdoor-dining.webp";
 import { businessConfig } from "./config/businessConfig";
@@ -149,6 +149,7 @@ export default function App() {
   const [orderStatus, setOrderStatus] = useState(null);
   const [adminMode, setAdminMode] = useState(false);
   const [cartExpanded, setCartExpanded] = useState(false);
+  const [cartStep, setCartStep] = useState("review");
   const [managedProducts, setManagedProducts] = useState(() =>
     loadStoredList(STORAGE_KEYS.products, mockProducts.map(normaliseProduct))
   );
@@ -244,6 +245,8 @@ export default function App() {
     ]);
     setCart([]);
     setCustomerInfo(emptyCustomerInfo);
+    setCartStep("review");
+    setCartExpanded(false);
   }
 
   function updateCustomerInfo(field, value) {
@@ -272,6 +275,16 @@ export default function App() {
         item.id === productId ? { ...item, quantity: item.quantity - 1 } : item
       )
     );
+  }
+
+  function openCart() {
+    setCartStep("review");
+    setCartExpanded(true);
+  }
+
+  function closeCart() {
+    setCartStep("review");
+    setCartExpanded(false);
   }
 
   return (
@@ -360,17 +373,23 @@ export default function App() {
           </section>
 
           {!cartExpanded ? (
-            <button className="cartSummaryButton" type="button" onClick={() => setCartExpanded(true)}>
-              🛒 Cart ({cartItemCount} {cartItemCount === 1 ? "item" : "items"}) • ${total.toFixed(2)}
+            <button className="cartSummaryButton" type="button" onClick={openCart}>
+              <ShoppingCart size={18} />
+              Cart ({cartItemCount} {cartItemCount === 1 ? "item" : "items"}) • ${total.toFixed(2)}
             </button>
           ) : (
-            <aside className="cartPanel">
+            <aside className="cartPanel" aria-label={cartStep === "review" ? "Cart review" : "Checkout"}>
               <div className="cartHeader">
                 <div>
+                  {cartStep === "checkout" && (
+                    <button className="iconButton" type="button" onClick={() => setCartStep("review")} aria-label="Back to cart review">
+                      <ArrowLeft size={17} />
+                    </button>
+                  )}
                   <ShoppingBag size={20} />
-                  <strong>Your Order</strong>
+                  <strong>{cartStep === "review" ? "Cart Review" : "Checkout"}</strong>
                 </div>
-                <button className="cartCloseButton" type="button" onClick={() => setCartExpanded(false)}>
+                <button className="cartCloseButton" type="button" onClick={closeCart}>
                   <X size={16} />
                   Close
                 </button>
@@ -379,135 +398,175 @@ export default function App() {
               {cart.length === 0 ? (
                 <p className="muted">Your cart is empty.</p>
               ) : (
-                <>
-                  {cart.map((item) => (
-                    <div className="cartItem" key={item.id}>
-                      <div>
-                        <strong>{item.name}</strong>
+                cartStep === "review" ? (
+                  <>
+                    {cart.map((item) => (
+                      <div className="cartItem" key={item.id}>
+                        <div>
+                          <strong>{item.name}</strong>
+                        </div>
+                        <div className="quantityControls" aria-label={`${item.name} quantity`}>
+                          <button
+                            type="button"
+                            aria-label={`Decrease ${item.name} quantity`}
+                            onClick={() => decreaseQuantity(item.id)}
+                          >
+                            -
+                          </button>
+                          <span>{item.quantity}</span>
+                          <button
+                            type="button"
+                            aria-label={`Increase ${item.name} quantity`}
+                            onClick={() => setCart(addToCart(cart, item))}
+                          >
+                            +
+                          </button>
+                        </div>
                       </div>
-                      <div className="quantityControls" aria-label={`${item.name} quantity`}>
-                        <button
-                          type="button"
-                          aria-label={`Decrease ${item.name} quantity`}
-                          onClick={() => decreaseQuantity(item.id)}
-                        >
-                          -
-                        </button>
-                        <span>{item.quantity}</span>
-                        <button
-                          type="button"
-                          aria-label={`Increase ${item.name} quantity`}
-                          onClick={() => setCart(addToCart(cart, item))}
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
 
-                  <label className="pickup">
-                    <Clock size={16} />
-                    Pickup time
-                    <select value={pickupTime} onChange={(event) => updatePickupTime(event.target.value)}>
-                      {pickupOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                      <option value="custom">Custom Time</option>
-                    </select>
-                  </label>
-
-                  {pickupTime === "custom" && (
-                    <label className="cartField">
-                      Custom pickup time
-                      <input
-                        type="time"
-                        min={getTimeInputValue(pickupSchedule.earliestPickupDate)}
-                        value={customPickupTime}
-                        onChange={(event) => setCustomPickupTime(event.target.value)}
-                      />
+                    <label className="pickup">
+                      <Clock size={16} />
+                      Pickup time
+                      <select value={pickupTime} onChange={(event) => updatePickupTime(event.target.value)}>
+                        {pickupOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                        <option value="custom">Custom Time</option>
+                      </select>
                     </label>
-                  )}
 
-                  <div className="cartTiming">
-                    <div className="readyTime">
-                      <span>Current Estimated Wait</span>
-                      <strong>{kitchenWaitTime}</strong>
-                    </div>
-                    <div className="readyTime">
-                      <span>Earliest Available Pickup</span>
-                      <strong>{pickupSchedule.earliestPickup}</strong>
-                    </div>
-                    {pickupSchedule.showScheduledPickup && (
+                    {pickupTime === "custom" && (
+                      <label className="cartField">
+                        Custom pickup time
+                        <input
+                          type="time"
+                          min={getTimeInputValue(pickupSchedule.earliestPickupDate)}
+                          value={customPickupTime}
+                          onChange={(event) => setCustomPickupTime(event.target.value)}
+                        />
+                      </label>
+                    )}
+
+                    <div className="cartTiming">
                       <div className="readyTime">
-                        <span>Scheduled Pickup</span>
+                        <span>Current Estimated Wait</span>
+                        <strong>{kitchenWaitTime}</strong>
+                      </div>
+                      <div className="readyTime">
+                        <span>Earliest Available Pickup</span>
+                        <strong>{pickupSchedule.earliestPickup}</strong>
+                      </div>
+                      {pickupSchedule.showScheduledPickup && (
+                        <div className="readyTime">
+                          <span>Scheduled Pickup</span>
+                          <strong>{pickupSchedule.scheduledPickup}</strong>
+                        </div>
+                      )}
+                    </div>
+
+                    {!pickupSchedule.isValid && (
+                      <p className="pickupWarning">
+                        Kitchen requires at least {kitchenWaitTime.toLowerCase()} notice.
+                        Earliest available pickup is {pickupSchedule.earliestPickup}.
+                      </p>
+                    )}
+
+                    <div className="total">
+                      <span>Total</span>
+                      <strong>${total.toFixed(2)}</strong>
+                    </div>
+
+                    <button
+                      className="primaryButton full"
+                      type="button"
+                      onClick={() => setCartStep("checkout")}
+                      disabled={!pickupSchedule.isValid}
+                    >
+                      Continue Checkout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <section className="checkoutSection" aria-labelledby="customer-info-heading">
+                      <h3 id="customer-info-heading">Customer Information</h3>
+                      <div className="checkoutFields">
+                        <label className="cartField">
+                          First Name
+                          <input
+                            value={customerInfo.firstName}
+                            onChange={(event) => updateCustomerInfo("firstName", event.target.value)}
+                            required
+                          />
+                        </label>
+                        <label className="cartField">
+                          Last Name
+                          <input
+                            value={customerInfo.lastName}
+                            onChange={(event) => updateCustomerInfo("lastName", event.target.value)}
+                            required
+                          />
+                        </label>
+                        <label className="cartField wide">
+                          Mobile Phone Number
+                          <input
+                            type="tel"
+                            value={customerInfo.phone}
+                            onChange={(event) => updateCustomerInfo("phone", event.target.value)}
+                            required
+                          />
+                        </label>
+                        <label className="cartField wide">
+                          Email Address <span>Optional</span>
+                          <input
+                            type="email"
+                            value={customerInfo.email}
+                            onChange={(event) => updateCustomerInfo("email", event.target.value)}
+                          />
+                        </label>
+                      </div>
+                    </section>
+
+                    <section className="checkoutSection" aria-labelledby="special-instructions-heading">
+                      <h3 id="special-instructions-heading">Special Instructions</h3>
+                      <label className="cartField">
+                        Examples: No mayo, no pickles, extra onions, allergy notes
+                        <textarea
+                          value={customerInfo.specialInstructions}
+                          onChange={(event) => updateCustomerInfo("specialInstructions", event.target.value)}
+                          placeholder="No mayo, no pickles, extra onions, allergy notes"
+                          rows="3"
+                        />
+                      </label>
+                    </section>
+
+                    <section className="checkoutSection" aria-labelledby="order-summary-heading">
+                      <h3 id="order-summary-heading">Order Summary</h3>
+                      <div className="orderSummaryList">
+                        {cart.map((item) => (
+                          <div className="orderSummaryItem" key={item.id}>
+                            <span>{item.quantity} x {item.name}</span>
+                            <strong>${(item.price * item.quantity).toFixed(2)}</strong>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="readyTime">
+                        <span>Pickup</span>
                         <strong>{pickupSchedule.scheduledPickup}</strong>
                       </div>
-                    )}
-                  </div>
+                      <div className="total">
+                        <span>Total</span>
+                        <strong>${total.toFixed(2)}</strong>
+                      </div>
+                    </section>
 
-                  {!pickupSchedule.isValid && (
-                    <p className="pickupWarning">
-                      Kitchen requires at least {kitchenWaitTime.toLowerCase()} notice.
-                      Earliest available pickup is {pickupSchedule.earliestPickup}.
-                    </p>
-                  )}
-
-                  <div className="checkoutFields">
-                    <label className="cartField">
-                      First Name
-                      <input
-                        value={customerInfo.firstName}
-                        onChange={(event) => updateCustomerInfo("firstName", event.target.value)}
-                        required
-                      />
-                    </label>
-                    <label className="cartField">
-                      Last Name
-                      <input
-                        value={customerInfo.lastName}
-                        onChange={(event) => updateCustomerInfo("lastName", event.target.value)}
-                        required
-                      />
-                    </label>
-                    <label className="cartField wide">
-                      Mobile Phone Number
-                      <input
-                        type="tel"
-                        value={customerInfo.phone}
-                        onChange={(event) => updateCustomerInfo("phone", event.target.value)}
-                        required
-                      />
-                    </label>
-                    <label className="cartField wide">
-                      Email Address
-                      <input
-                        type="email"
-                        value={customerInfo.email}
-                        onChange={(event) => updateCustomerInfo("email", event.target.value)}
-                      />
-                    </label>
-                    <label className="cartField wide">
-                      Special Instructions
-                      <textarea
-                        value={customerInfo.specialInstructions}
-                        onChange={(event) => updateCustomerInfo("specialInstructions", event.target.value)}
-                        placeholder="No mayo, no pickles, extra onions, dressing on the side, allergy notes"
-                        rows="3"
-                      />
-                    </label>
-                  </div>
-
-                  <div className="total">
-                    <span>Total</span>
-                    <strong>${total.toFixed(2)}</strong>
-                  </div>
-
-                  <button className="primaryButton full" onClick={submitOrder} disabled={!canPlaceOrder}>
-                    Place Order
-                  </button>
-                </>
+                    <button className="primaryButton full" onClick={submitOrder} disabled={!canPlaceOrder}>
+                      Place Order
+                    </button>
+                  </>
+                )
               )}
             </aside>
           )}
