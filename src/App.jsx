@@ -24,6 +24,7 @@ export default function App() {
   }, [selectedCategory]);
 
   const total = getCartTotal(cart);
+  const estimatedReadyTime = useMemo(() => getEstimatedReadyTime(pickupTime), [pickupTime]);
 
   async function submitOrder() {
     const order = {
@@ -179,9 +180,15 @@ export default function App() {
                   </select>
                 </label>
 
-                <div className="readyTime">
-                  <span>Estimated Ready Time</span>
-                  <strong>{pickupTime}</strong>
+                <div className="cartTiming">
+                  <div className="readyTime">
+                    <span>Current Estimated Wait</span>
+                    <strong>{kitchenWaitTime}</strong>
+                  </div>
+                  <div className="readyTime">
+                    <span>Estimated Ready Time</span>
+                    <strong>{estimatedReadyTime}</strong>
+                  </div>
                 </div>
 
                 <div className="total">
@@ -210,6 +217,19 @@ export default function App() {
       )}
     </main>
   );
+}
+
+function getEstimatedReadyTime(pickupTime) {
+  const minutes = pickupTime === "1 hour" ? 60 : Number.parseInt(pickupTime, 10);
+  const readyTime = new Date();
+
+  readyTime.setMinutes(readyTime.getMinutes() + minutes);
+
+  return readyTime.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true
+  });
 }
 
 function ProductCard({ product, onAdd }) {
