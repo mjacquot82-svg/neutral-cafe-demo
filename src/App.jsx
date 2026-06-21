@@ -119,7 +119,10 @@ export default function App() {
 
   const total = getCartTotal(cart);
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const estimatedReadyTime = useMemo(() => getEstimatedReadyTime(pickupTime), [pickupTime]);
+  const pickupSchedule = useMemo(
+    () => getPickupSchedule(pickupTime, kitchenWaitTime),
+    [pickupTime, kitchenWaitTime]
+  );
 
   useEffect(() => {
     if (selectedCategory !== "All" && !menuCategories.includes(selectedCategory)) {
@@ -128,9 +131,12 @@ export default function App() {
   }, [menuCategories, selectedCategory]);
 
   async function submitOrder() {
+    if (!pickupSchedule.isValid) return;
+
     const order = {
       items: cart,
       pickupTime,
+      scheduledPickup: pickupSchedule.scheduledPickup,
       total,
       businessName: businessConfig.businessName
     };
@@ -141,7 +147,7 @@ export default function App() {
 
     setOrderStatus({
       message: "Order submitted",
-      pickupTime,
+      pickupTime: pickupSchedule.scheduledPickup,
       total,
       cloverOrderId: clover.cloverOrderId
     });
@@ -341,17 +347,30 @@ export default function App() {
                       <strong>{kitchenWaitTime}</strong>
                     </div>
                     <div className="readyTime">
-                      <span>Estimated Ready Time</span>
-                      <strong>{estimatedReadyTime}</strong>
+                      <span>Earliest Available Pickup</span>
+                      <strong>{pickupSchedule.earliestPickup}</strong>
                     </div>
+                    {pickupSchedule.showScheduledPickup && (
+                      <div className="readyTime">
+                        <span>Scheduled Pickup</span>
+                        <strong>{pickupSchedule.scheduledPickup}</strong>
+                      </div>
+                    )}
                   </div>
+
+                  {!pickupSchedule.isValid && (
+                    <p className="pickupWarning">
+                      Kitchen requires at least {kitchenWaitTime.toLowerCase()} notice.
+                      Earliest available pickup is {pickupSchedule.earliestPickup}.
+                    </p>
+                  )}
 
                   <div className="total">
                     <span>Total</span>
                     <strong>${total.toFixed(2)}</strong>
                   </div>
 
-                  <button className="primaryButton full" onClick={submitOrder}>
+                  <button className="primaryButton full" onClick={submitOrder} disabled={!pickupSchedule.isValid}>
                     Fake Checkout
                   </button>
                 </>
@@ -380,13 +399,35 @@ export default function App() {
   );
 }
 
-function getEstimatedReadyTime(pickupTime) {
-  const minutes = pickupTime === "1 hour" ? 60 : Number.parseInt(pickupTime, 10);
-  const readyTime = new Date();
+function getPickupSchedule(pickupTime, kitchenWaitTime) {
+  const now = new Date();
+  const kitchenWaitMinutes = parseMinutes(kitchenWaitTime);
+  const selectedPickupMinutes = parseMinutes(pickupTime);
+  const earliestPickupDate = addMinutes(now, kitchenWaitMinutes);
+  const scheduledPickupDate = addMinutes(now, selectedPickupMinutes);
+  const isValid = selectedPickupMinutes >= kitchenWaitMinutes;
 
-  readyTime.setMinutes(readyTime.getMinutes() + minutes);
+  return {
+    earliestPickup: formatPickupTime(earliestPickupDate),
+    scheduledPickup: formatPickupTime(scheduledPickupDate),
+    isValid,
+    showScheduledPickup: isValid && selectedPickupMinutes !== kitchenWaitMinutes
+  };
+}
 
-  return readyTime.toLocaleTimeString("en-US", {
+function parseMinutes(value) {
+  if (value === "1 hour") return 60;
+  return Number.parseInt(value, 10);
+}
+
+function addMinutes(date, minutes) {
+  const nextDate = new Date(date);
+  nextDate.setMinutes(nextDate.getMinutes() + minutes);
+  return nextDate;
+}
+
+function formatPickupTime(date) {
+  return date.toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
     hour12: true
