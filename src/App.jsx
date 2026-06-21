@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
-import { Clock, Flag, Settings, ShoppingBag, UtensilsCrossed } from "lucide-react";
+import { Clock, MapPin, Settings, ShoppingBag, UtensilsCrossed } from "lucide-react";
+import wgccLogo from "./assets/wgcc-logo.webp";
+import outdoorDiningImage from "./assets/wgcc-outdoor-dining.webp";
 import { businessConfig } from "./config/businessConfig";
 import { mockProducts } from "./data/mockProducts";
 import { mockPromotions } from "./data/mockPromotions";
@@ -21,7 +23,6 @@ export default function App() {
     return mockProducts.filter((product) => product.category === selectedCategory);
   }, [selectedCategory]);
 
-  const featuredProducts = mockProducts.filter((product) => product.featured);
   const total = getCartTotal(cart);
 
   async function submitOrder() {
@@ -51,7 +52,7 @@ export default function App() {
       <header className="topbar">
         <div className="brand">
           <div className="brandMark">
-            <Flag size={22} />
+            <img src={wgccLogo} alt="" />
           </div>
           <div>
             <strong>{businessConfig.shortName}</strong>
@@ -68,20 +69,34 @@ export default function App() {
       {!adminMode ? (
         <>
           <section className="hero">
-            <div>
-              <p className="eyebrow">Golf • Curling • Clubhouse Dining</p>
-              <h1>Welcome to the Walkerton Golf &amp; Curling Club Restaurant</h1>
-              <p>Order ahead from the clubhouse before your round, at the turn, or after the game</p>
+            <div className="heroCopy">
+              <img className="heroLogo" src={wgccLogo} alt="Walkerton Golf & Curling Club" />
+              <p className="eyebrow">Outdoor Dining at WGCC</p>
+              <h1>Fresh clubhouse dining, ready when you are</h1>
+              <p>
+                Order from the WGCC menu for patio, deck, or clubhouse pickup and enjoy a relaxed meal with views across the course.
+              </p>
               <div className="heroActions">
-                <a href="#menu" className="primaryButton">{businessConfig.primaryAction}</a>
-                <a href="#specials" className="secondaryButton">{businessConfig.secondaryAction}</a>
+                <a href="#menu" className="primaryButton">Order Now</a>
+                <a href="#menu" className="secondaryButton">View Menu</a>
+              </div>
+              <div className="heroMeta" aria-label="Dining highlights">
+                <span>Wednesday to Sunday</span>
+                <span>11:00 AM - 7:00 PM</span>
+                <span>Patio & deck seating</span>
               </div>
             </div>
 
-            <div className="heroCard">
-              <UtensilsCrossed size={38} />
-              <h3>Clubhouse pickup</h3>
-              <p>Choose your meal, pick a time, and collect it from the restaurant when ready.</p>
+            <div className="heroCard" style={{ backgroundImage: `url(${outdoorDiningImage})` }}>
+              <div className="heroCardContent">
+                <UtensilsCrossed size={34} />
+                <h3>Easy outdoor ordering</h3>
+                <p>Use the upper deck service window, take a pager, and settle in while your order is prepared.</p>
+                <span>
+                  <MapPin size={15} />
+                  164 Bruce Rd 2, Walkerton
+                </span>
+              </div>
             </div>
           </section>
 
@@ -99,21 +114,6 @@ export default function App() {
                   <p>{promotion.message}</p>
                   <button className="secondaryButton">{promotion.cta}</button>
                 </article>
-              ))}
-            </div>
-          </section>
-
-          <section className="section">
-            <div className="sectionHeader">
-              <div>
-                <p className="eyebrow">Featured</p>
-                <h2>Popular right now</h2>
-              </div>
-            </div>
-
-            <div className="productGrid">
-              {featuredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} onAdd={() => setCart(addToCart(cart, product))} />
               ))}
             </div>
           </section>
