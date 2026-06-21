@@ -42,6 +42,14 @@ const emptyPromotionForm = {
   cta: ""
 };
 
+const emptyCustomerInfo = {
+  firstName: "",
+  lastName: "",
+  phone: "",
+  email: "",
+  specialInstructions: ""
+};
+
 const ORDER_STATUSES = ["New", "Preparing", "Ready", "Completed", "Cancelled"];
 
 function createId(value, prefix) {
@@ -82,19 +90,21 @@ function persistList(key, value) {
   window.localStorage.setItem(key, JSON.stringify(value));
 }
 
-function createOrderRecord({ items, total, scheduledPickup }) {
+function createOrderRecord({ items, total, scheduledPickup, customerInfo }) {
   const createdAt = new Date();
+  const customerName = `${customerInfo.firstName} ${customerInfo.lastName}`.trim();
 
   return {
     id: createId("wgcc-order", "order"),
     orderNumber: `WGCC-${String(createdAt.getTime()).slice(-6)}`,
-    customerName: "Guest Customer",
-    phoneNumber: "Not provided",
+    customerName,
+    phoneNumber: customerInfo.phone,
+    email: customerInfo.email,
     orderTime: formatPickupTime(createdAt),
     createdAt: createdAt.toISOString(),
     scheduledPickupTime: scheduledPickup,
     status: "New",
-    notes: "No notes",
+    notes: customerInfo.specialInstructions.trim() || "None",
     total,
     items: items.map((item) => ({
       id: item.id,
@@ -129,7 +139,9 @@ export default function App() {
   const kitchenWaitTime = "25 Minutes";
   const [cart, setCart] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [pickupTime, setPickupTime] = useState("15 minutes");
+  const [pickupTime, setPickupTime] = useState("asap");
+  const [customPickupTime, setCustomPickupTime] = useState("");
+  const [customerInfo, setCustomerInfo] = useState(emptyCustomerInfo);
   const [orderStatus, setOrderStatus] = useState(null);
   const [adminMode, setAdminMode] = useState(false);
   const [cartExpanded, setCartExpanded] = useState(false);
@@ -173,9 +185,14 @@ export default function App() {
   const total = getCartTotal(cart);
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const pickupSchedule = useMemo(
-    () => getPickupSchedule(pickupTime, kitchenWaitTime),
-    [pickupTime, kitchenWaitTime]
+    () => getPickupSchedule(pickupTime, kitchenWaitTime, customPickupTime),
+    [customPickupTime, pickupTime, kitchenWaitTime]
   );
+  const pickupOptions = useMemo(() => getPickupOptions(kitchenWaitTime), [kitchenWaitTime]);
+  const customerInfoComplete = Boolean(customerInfo.firstName.trim()
+    && customerInfo.lastName.trim()
+    && customerInfo.phone.trim());
+  const canPlaceOrder = pickupSchedule.isValid && customerInfoComplete;
 
   useEffect(() => {
     if (selectedCategory !== "All" && !menuCategories.includes(selectedCategory)) {
@@ -183,13 +200,20 @@ export default function App() {
     }
   }, [menuCategories, selectedCategory]);
 
+  useEffect(() => {
+    if (!customPickupTime) {
+      setCustomPickupTime(getTimeInputValue(pickupSchedule.earliestPickupDate));
+    }
+  }, [customPickupTime, pickupSchedule.earliestPickupDate]);
+
   async function submitOrder() {
-    if (!pickupSchedule.isValid) return;
+    if (!canPlaceOrder) return;
 
     const order = {
       items: cart,
       pickupTime,
       scheduledPickup: pickupSchedule.scheduledPickup,
+      customer: customerInfo,
       total,
       businessName: businessConfig.businessName
     };
@@ -209,11 +233,25 @@ export default function App() {
       createOrderRecord({
         items: cart,
         total,
-        scheduledPickup: pickupSchedule.scheduledPickup
+        scheduledPickup: pickupSchedule.scheduledPickup,
+        customerInfo
       }),
       ...orders
     ]);
     setCart([]);
+    setCustomerInfo(emptyCustomerInfo);
+  }
+
+  function updateCustomerInfo(field, value) {
+    setCustomerInfo((current) => ({ ...current, [field]: value }));
+  }
+
+  function updatePickupTime(value) {
+    setPickupTime(value);
+
+    if (value === "custom") {
+      setCustomPickupTime(getTimeInputValue(addMinutes(new Date(), parseMinutes(kitchenWaitTime))));
+    }
   }
 
   function decreaseQuantity(productId) {
@@ -394,13 +432,27 @@ export default function App() {
                   <label className="pickup">
                     <Clock size={16} />
                     Pickup time
-                    <select value={pickupTime} onChange={(event) => setPickupTime(event.target.value)}>
-                      <option>15 minutes</option>
-                      <option>30 minutes</option>
-                      <option>45 minutes</option>
-                      <option>1 hour</option>
+                    <select value={pickupTime} onChange={(event) => updatePickupTime(event.target.value)}>
+                      {pickupOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                      <option value="custom">Custom Time</option>
                     </select>
                   </label>
+
+                  {pickupTime === "custom" && (
+                    <label className="cartField">
+                      Custom pickup time
+                      <input
+                        type="time"
+                        min={getTimeInputValue(pickupSchedule.earliestPickupDate)}
+                        value={customPickupTime}
+                        onChange={(event) => setCustomPickupTime(event.target.value)}
+                      />
+                    </label>
+                  )}
 
                   <div className="cartTiming">
                     <div className="readyTime">
@@ -426,13 +478,58 @@ export default function App() {
                     </p>
                   )}
 
+                  <div className="checkoutFields">
+                    <label className="cartField">
+                      First Name
+                      <input
+                        value={customerInfo.firstName}
+                        onChange={(event) => updateCustomerInfo("firstName", event.target.value)}
+                        required
+                      />
+                    </label>
+                    <label className="cartField">
+                      Last Name
+                      <input
+                        value={customerInfo.lastName}
+                        onChange={(event) => updateCustomerInfo("lastName", event.target.value)}
+                        required
+                      />
+                    </label>
+                    <label className="cartField wide">
+                      Mobile Phone Number
+                      <input
+                        type="tel"
+                        value={customerInfo.phone}
+                        onChange={(event) => updateCustomerInfo("phone", event.target.value)}
+                        required
+                      />
+                    </label>
+                    <label className="cartField wide">
+                      Email Address
+                      <input
+                        type="email"
+                        value={customerInfo.email}
+                        onChange={(event) => updateCustomerInfo("email", event.target.value)}
+                      />
+                    </label>
+                    <label className="cartField wide">
+                      Special Instructions
+                      <textarea
+                        value={customerInfo.specialInstructions}
+                        onChange={(event) => updateCustomerInfo("specialInstructions", event.target.value)}
+                        placeholder="No mayo, no pickles, extra onions, dressing on the side, allergy notes"
+                        rows="3"
+                      />
+                    </label>
+                  </div>
+
                   <div className="total">
                     <span>Total</span>
                     <strong>${total.toFixed(2)}</strong>
                   </div>
 
-                  <button className="primaryButton full" onClick={submitOrder} disabled={!pickupSchedule.isValid}>
-                    Fake Checkout
+                  <button className="primaryButton full" onClick={submitOrder} disabled={!canPlaceOrder}>
+                    Place Order
                   </button>
                 </>
               )}
@@ -463,20 +560,38 @@ export default function App() {
   );
 }
 
-function getPickupSchedule(pickupTime, kitchenWaitTime) {
+function getPickupSchedule(pickupTime, kitchenWaitTime, customPickupTime) {
   const now = new Date();
   const kitchenWaitMinutes = parseMinutes(kitchenWaitTime);
-  const selectedPickupMinutes = parseMinutes(pickupTime);
   const earliestPickupDate = addMinutes(now, kitchenWaitMinutes);
-  const scheduledPickupDate = addMinutes(now, selectedPickupMinutes);
-  const isValid = selectedPickupMinutes >= kitchenWaitMinutes;
+  const scheduledPickupDate = pickupTime === "custom"
+    ? getCustomPickupDate(now, customPickupTime || getTimeInputValue(earliestPickupDate))
+    : addMinutes(now, pickupTime === "asap" ? kitchenWaitMinutes : parseMinutes(pickupTime));
+  const isValid = scheduledPickupDate.getTime() >= earliestPickupDate.getTime();
 
   return {
+    earliestPickupDate,
     earliestPickup: formatPickupTime(earliestPickupDate),
     scheduledPickup: formatPickupTime(scheduledPickupDate),
     isValid,
-    showScheduledPickup: isValid && selectedPickupMinutes !== kitchenWaitMinutes
+    showScheduledPickup: isValid && scheduledPickupDate.getTime() !== earliestPickupDate.getTime()
   };
+}
+
+function getPickupOptions(kitchenWaitTime) {
+  const kitchenWaitMinutes = parseMinutes(kitchenWaitTime);
+  const presetMinutes = [30, 45, 60].filter((minutes) => minutes > kitchenWaitMinutes);
+
+  return [
+    {
+      value: "asap",
+      label: `ASAP (${kitchenWaitMinutes} minutes)`
+    },
+    ...presetMinutes.map((minutes) => ({
+      value: minutes === 60 ? "1 hour" : `${minutes} minutes`,
+      label: minutes === 60 ? "60 minutes" : `${minutes} minutes`
+    }))
+  ];
 }
 
 function parseMinutes(value) {
@@ -486,7 +601,7 @@ function parseMinutes(value) {
 
 function addMinutes(date, minutes) {
   const nextDate = new Date(date);
-  nextDate.setMinutes(nextDate.getMinutes() + minutes);
+  nextDate.setMinutes(nextDate.getMinutes() + minutes, 0, 0);
   return nextDate;
 }
 
@@ -496,6 +611,19 @@ function formatPickupTime(date) {
     minute: "2-digit",
     hour12: true
   });
+}
+
+function getTimeInputValue(date) {
+  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+}
+
+function getCustomPickupDate(now, timeValue) {
+  const [hours, minutes] = timeValue.split(":").map(Number);
+  const pickupDate = new Date(now);
+
+  pickupDate.setHours(hours, minutes, 0, 0);
+
+  return pickupDate;
 }
 
 function ProductCard({ product, onAdd }) {
@@ -827,7 +955,7 @@ function AdminDashboard({
                               <strong>{order.scheduledPickupTime}</strong>
                             </div>
                             <div>
-                              <span>Notes</span>
+                              <span>Special Instructions</span>
                               <strong>{order.notes}</strong>
                             </div>
                             <div>

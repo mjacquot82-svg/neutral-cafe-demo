@@ -512,6 +512,37 @@ main {
   background: white;
 }
 
+.checkoutFields {
+  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+}
+
+.cartField {
+  display: grid;
+  gap: 0.35rem;
+  color: rgba(16, 42, 28, 0.78);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.cartField.wide {
+  grid-column: 1 / -1;
+}
+
+.cartField input,
+.cartField textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  color: var(--forest);
+  padding: 0.72rem;
+  resize: vertical;
+}
+
 .cartTiming {
   border-top: 1px solid var(--line);
   padding: 0.75rem 0;
@@ -1021,6 +1052,7 @@ main {
   }
 
   .formGrid,
+  .checkoutFields,
   .managerRow,
   .promotionManagerCard,
   .ordersHeader,
