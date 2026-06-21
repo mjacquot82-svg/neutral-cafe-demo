@@ -1,20 +1,20 @@
 export const mockPromotions = [
   {
-    id: "weekend-breakfast",
-    title: "Weekend Breakfast Special",
-    message: "Start the day at the clubhouse with a hot breakfast before your tee time or morning draw.",
-    cta: "Order breakfast"
+    id: "outdoor-dining",
+    title: "Outdoor Dining at WGCC",
+    message: "Enjoy the 2026 outdoor dining experience with fresh clubhouse meals in a relaxed patio and deck setting.",
+    cta: "View menu"
   },
   {
-    id: "ninth-combo",
-    title: "Turn at the 9th Combo",
-    message: "Grab a quick sandwich, snack, and drink combo so you can get back to the fairway on schedule.",
-    cta: "Add the combo"
+    id: "patio-deck-seating",
+    title: "Patio & Deck Seating",
+    message: "Settle in on the patio or upper deck before your round, after the game, or while taking in the course views.",
+    cta: "Order for pickup"
   },
   {
-    id: "soup-sandwich",
-    title: "Soup & Sandwich Feature",
-    message: "A rotating clubhouse lunch pairing made for golfers, curlers, and guests stopping in.",
-    cta: "View today's feature"
+    id: "easy-ordering",
+    title: "Easy Ordering",
+    message: "Order through the upper deck service window and use the pager system so your food is ready without the wait.",
+    cta: "Start an order"
   }
 ];

@@ -7,13 +7,10 @@ export const businessConfig = {
   primaryAction: "Start an Order",
   secondaryAction: "View Specials",
   categories: [
-    "Breakfast",
-    "Starters",
-    "Sandwiches & Wraps",
-    "Burgers",
-    "Salads",
-    "Mains",
-    "Beverages"
+    "SHAREABLES",
+    "SALADS",
+    "SANDWICHES",
+    "FISH & CHIPS"
   ],
   colors: {
     cream: "#f4f7ef",
