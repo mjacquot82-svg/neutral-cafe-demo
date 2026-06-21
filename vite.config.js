@@ -40,7 +40,7 @@ function wgccPwaIcons() {
     name: "wgcc-pwa-icons",
     configureServer(server) {
       server.middlewares.use((request, response, next) => {
-        if (request.url === "/assets/wgcc.png") {
+        if (request.url === "/assets/wgcc.png" || request.url === "/favicon.png") {
           response.setHeader("Content-Type", "image/png");
           response.end(fs.readFileSync(pwaIconPath));
           return;
@@ -59,6 +59,12 @@ function wgccPwaIcons() {
       this.emitFile({
         type: "asset",
         fileName: pwaIconFileName,
+        source: fs.readFileSync(pwaIconPath)
+      });
+
+      this.emitFile({
+        type: "asset",
+        fileName: "favicon.png",
         source: fs.readFileSync(pwaIconPath)
       });
 
