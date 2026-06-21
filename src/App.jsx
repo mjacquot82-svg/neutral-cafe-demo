@@ -34,7 +34,9 @@ const emptyProductForm = {
   price: "",
   category: ADMIN_CATEGORIES[0],
   featured: false,
-  active: true
+  active: true,
+  imageData: "",
+  imageName: ""
 };
 
 const emptyPromotionForm = {
@@ -55,6 +57,7 @@ const ORDER_STATUSES = ["New", "Preparing", "Ready", "Completed", "Cancelled"];
 const ACTIVE_ORDER_STATUSES = ["New", "Preparing", "Ready"];
 const COMPLETED_ORDER_STATUSES = ["Completed", "Cancelled"];
 const KITCHEN_WAIT_OPTIONS = ["10 Minutes", "20 Minutes", "30 Minutes", "45 Minutes", "60 Minutes"];
+const SUPPORTED_PRODUCT_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 function createId(value, prefix) {
   const slug = value
@@ -665,7 +668,11 @@ function ProductCard({ product, onAdd }) {
   return (
     <article className="productCard">
       <div className="imagePlaceholder">
-        <UtensilsCrossed size={28} />
+        {product.imageData ? (
+          <img src={product.imageData} alt="" />
+        ) : (
+          <UtensilsCrossed size={28} />
+        )}
       </div>
       <div className="productInfo">
         <div>
@@ -779,6 +786,31 @@ function AdminDashboard({
     setProductForm((current) => ({ ...current, [field]: value }));
   }
 
+  function updateProductImage(event) {
+    const [file] = event.target.files;
+    event.target.value = "";
+
+    if (!file || !SUPPORTED_PRODUCT_IMAGE_TYPES.includes(file.type)) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setProductForm((current) => ({
+        ...current,
+        imageData: String(reader.result || ""),
+        imageName: file.name
+      }));
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeProductImage() {
+    setProductForm((current) => ({
+      ...current,
+      imageData: "",
+      imageName: ""
+    }));
+  }
+
   function resetProductForm() {
     setProductForm(emptyProductForm);
     setEditingProductId(null);
@@ -797,7 +829,9 @@ function AdminDashboard({
       category: productForm.category,
       featured: productForm.featured,
       active: productForm.active,
-      available: productForm.active
+      available: productForm.active,
+      imageData: productForm.imageData,
+      imageName: productForm.imageName
     };
 
     if (editingProductId) {
@@ -827,7 +861,9 @@ function AdminDashboard({
       price: String(product.price),
       category: product.category,
       featured: Boolean(product.featured),
-      active: product.active !== false && product.available !== false
+      active: product.active !== false && product.available !== false,
+      imageData: product.imageData || "",
+      imageName: product.imageName || ""
     });
   }
 
@@ -1192,6 +1228,35 @@ function AdminDashboard({
                   rows="3"
                 />
               </label>
+
+              <div className="formField wide">
+                <span>Product Image</span>
+                <div className="productImageEditor">
+                  <div className="productImagePreview">
+                    {productForm.imageData ? (
+                      <img src={productForm.imageData} alt="" />
+                    ) : (
+                      <UtensilsCrossed size={30} />
+                    )}
+                  </div>
+                  <div className="productImageControls">
+                    <label className="imageUploadButton">
+                      {productForm.imageData ? "Replace Image" : "Upload Image"}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={updateProductImage}
+                      />
+                    </label>
+                    {productForm.imageData && (
+                      <button className="mutedButton" type="button" onClick={removeProductImage}>
+                        Remove Image
+                      </button>
+                    )}
+                    <small>JPG, JPEG, PNG, or WEBP</small>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="adminControls">
@@ -1226,6 +1291,7 @@ function AdminDashboard({
 
           <div className="managerTable" aria-label="Managed menu products">
             <div className="managerTableHeader">
+              <span>Image</span>
               <span>Name</span>
               <span>Category</span>
               <span>Price</span>
@@ -1238,6 +1304,13 @@ function AdminDashboard({
 
               return (
                 <article className="managerRow productManagerRow" key={product.id}>
+                  <div className="productThumb">
+                    {product.imageData ? (
+                      <img src={product.imageData} alt="" />
+                    ) : (
+                      <UtensilsCrossed size={18} />
+                    )}
+                  </div>
                   <div className="managerMeta">
                     <strong>{product.name}</strong>
                   </div>
