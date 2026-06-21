@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Clock, MapPin, Settings, ShoppingBag, UtensilsCrossed } from "lucide-react";
+import { Clock, MapPin, Settings, ShoppingBag, UtensilsCrossed, X } from "lucide-react";
 import wgccLogo from "./assets/wgcc-logo.webp";
 import outdoorDiningImage from "./assets/wgcc-outdoor-dining.webp";
 import { businessConfig } from "./config/businessConfig";
@@ -17,6 +17,7 @@ export default function App() {
   const [pickupTime, setPickupTime] = useState("15 minutes");
   const [orderStatus, setOrderStatus] = useState(null);
   const [adminMode, setAdminMode] = useState(false);
+  const [cartExpanded, setCartExpanded] = useState(false);
 
   const products = useMemo(() => {
     if (selectedCategory === "All") return mockProducts;
@@ -24,6 +25,7 @@ export default function App() {
   }, [selectedCategory]);
 
   const total = getCartTotal(cart);
+  const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const estimatedReadyTime = useMemo(() => getEstimatedReadyTime(pickupTime), [pickupTime]);
 
   async function submitOrder() {
@@ -165,74 +167,86 @@ export default function App() {
             </div>
           </section>
 
-          <aside className="cartPanel">
-            <div className="cartHeader">
-              <ShoppingBag size={20} />
-              <strong>Your Order</strong>
-            </div>
-
-            {cart.length === 0 ? (
-              <p className="muted">Your cart is empty.</p>
-            ) : (
-              <>
-                {cart.map((item) => (
-                  <div className="cartItem" key={item.id}>
-                    <div>
-                      <strong>{item.name}</strong>
-                    </div>
-                    <div className="quantityControls" aria-label={`${item.name} quantity`}>
-                      <button
-                        type="button"
-                        aria-label={`Decrease ${item.name} quantity`}
-                        onClick={() => decreaseQuantity(item.id)}
-                      >
-                        -
-                      </button>
-                      <span>{item.quantity}</span>
-                      <button
-                        type="button"
-                        aria-label={`Increase ${item.name} quantity`}
-                        onClick={() => setCart(addToCart(cart, item))}
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-                <label className="pickup">
-                  <Clock size={16} />
-                  Pickup time
-                  <select value={pickupTime} onChange={(event) => setPickupTime(event.target.value)}>
-                    <option>15 minutes</option>
-                    <option>30 minutes</option>
-                    <option>45 minutes</option>
-                    <option>1 hour</option>
-                  </select>
-                </label>
-
-                <div className="cartTiming">
-                  <div className="readyTime">
-                    <span>Current Estimated Wait</span>
-                    <strong>{kitchenWaitTime}</strong>
-                  </div>
-                  <div className="readyTime">
-                    <span>Estimated Ready Time</span>
-                    <strong>{estimatedReadyTime}</strong>
-                  </div>
+          {!cartExpanded ? (
+            <button className="cartSummaryButton" type="button" onClick={() => setCartExpanded(true)}>
+              🛒 Cart ({cartItemCount} {cartItemCount === 1 ? "item" : "items"}) • ${total.toFixed(2)}
+            </button>
+          ) : (
+            <aside className="cartPanel">
+              <div className="cartHeader">
+                <div>
+                  <ShoppingBag size={20} />
+                  <strong>Your Order</strong>
                 </div>
-
-                <div className="total">
-                  <span>Total</span>
-                  <strong>${total.toFixed(2)}</strong>
-                </div>
-
-                <button className="primaryButton full" onClick={submitOrder}>
-                  Fake Checkout
+                <button className="cartCloseButton" type="button" onClick={() => setCartExpanded(false)}>
+                  <X size={16} />
+                  Close
                 </button>
-              </>
-            )}
-          </aside>
+              </div>
+
+              {cart.length === 0 ? (
+                <p className="muted">Your cart is empty.</p>
+              ) : (
+                <>
+                  {cart.map((item) => (
+                    <div className="cartItem" key={item.id}>
+                      <div>
+                        <strong>{item.name}</strong>
+                      </div>
+                      <div className="quantityControls" aria-label={`${item.name} quantity`}>
+                        <button
+                          type="button"
+                          aria-label={`Decrease ${item.name} quantity`}
+                          onClick={() => decreaseQuantity(item.id)}
+                        >
+                          -
+                        </button>
+                        <span>{item.quantity}</span>
+                        <button
+                          type="button"
+                          aria-label={`Increase ${item.name} quantity`}
+                          onClick={() => setCart(addToCart(cart, item))}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  <label className="pickup">
+                    <Clock size={16} />
+                    Pickup time
+                    <select value={pickupTime} onChange={(event) => setPickupTime(event.target.value)}>
+                      <option>15 minutes</option>
+                      <option>30 minutes</option>
+                      <option>45 minutes</option>
+                      <option>1 hour</option>
+                    </select>
+                  </label>
+
+                  <div className="cartTiming">
+                    <div className="readyTime">
+                      <span>Current Estimated Wait</span>
+                      <strong>{kitchenWaitTime}</strong>
+                    </div>
+                    <div className="readyTime">
+                      <span>Estimated Ready Time</span>
+                      <strong>{estimatedReadyTime}</strong>
+                    </div>
+                  </div>
+
+                  <div className="total">
+                    <span>Total</span>
+                    <strong>${total.toFixed(2)}</strong>
+                  </div>
+
+                  <button className="primaryButton full" onClick={submitOrder}>
+                    Fake Checkout
+                  </button>
+                </>
+              )}
+            </aside>
+          )}
 
           {orderStatus && (
             <div className="confirmation">
