@@ -51,6 +51,9 @@ const emptyCustomerInfo = {
 };
 
 const ORDER_STATUSES = ["New", "Preparing", "Ready", "Completed", "Cancelled"];
+const ACTIVE_ORDER_STATUSES = ["New", "Preparing", "Ready"];
+const COMPLETED_ORDER_STATUSES = ["Completed", "Cancelled"];
+const KITCHEN_WAIT_OPTIONS = ["10 Minutes", "20 Minutes", "30 Minutes", "45 Minutes", "60 Minutes"];
 
 function createId(value, prefix) {
   const slug = value
@@ -104,6 +107,7 @@ function createOrderRecord({ items, total, scheduledPickup, customerInfo }) {
     createdAt: createdAt.toISOString(),
     scheduledPickupTime: scheduledPickup,
     status: "New",
+    viewed: false,
     notes: customerInfo.specialInstructions.trim() || "None",
     total,
     items: items.map((item) => ({
@@ -136,7 +140,7 @@ function queueReadyNotification(order) {
 }
 
 export default function App() {
-  const kitchenWaitTime = "25 Minutes";
+  const [kitchenWaitTime, setKitchenWaitTime] = useState("25 Minutes");
   const [cart, setCart] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [pickupTime, setPickupTime] = useState("asap");
@@ -551,6 +555,7 @@ export default function App() {
           promotions={managedPromotions}
           orders={managedOrders}
           kitchenWaitTime={kitchenWaitTime}
+          onKitchenWaitTimeChange={setKitchenWaitTime}
           onProductsChange={setManagedProducts}
           onPromotionsChange={setManagedPromotions}
           onOrdersChange={setManagedOrders}
@@ -652,6 +657,7 @@ function AdminDashboard({
   promotions,
   orders,
   kitchenWaitTime,
+  onKitchenWaitTimeChange,
   onProductsChange,
   onPromotionsChange,
   onOrdersChange
@@ -662,11 +668,24 @@ function AdminDashboard({
   const [promotionForm, setPromotionForm] = useState(emptyPromotionForm);
   const [editingPromotionId, setEditingPromotionId] = useState(null);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
+  const [completedOrdersExpanded, setCompletedOrdersExpanded] = useState(false);
+  const [waitTimeMode, setWaitTimeMode] = useState("preset");
 
   const ordersToday = useMemo(() => orders.filter((order) => isToday(order.createdAt)), [orders]);
+  const activeOrders = useMemo(
+    () => ordersToday.filter((order) => ACTIVE_ORDER_STATUSES.includes(order.status)),
+    [ordersToday]
+  );
+  const completedOrders = useMemo(
+    () => ordersToday.filter((order) => COMPLETED_ORDER_STATUSES.includes(order.status)),
+    [ordersToday]
+  );
   const revenueOrders = ordersToday.filter((order) => order.status !== "Cancelled");
   const revenueToday = revenueOrders.reduce((sum, order) => sum + order.total, 0);
   const averageOrderValue = revenueOrders.length > 0 ? revenueToday / revenueOrders.length : 0;
+  const kitchenWaitSelectValue = waitTimeMode === "custom" || !KITCHEN_WAIT_OPTIONS.includes(kitchenWaitTime)
+    ? "Custom"
+    : kitchenWaitTime;
 
   const currentCategoryOptions = useMemo(() => {
     if (productForm.category && !ADMIN_CATEGORIES.includes(productForm.category)) {
@@ -692,6 +711,38 @@ function AdminDashboard({
         return updatedOrder;
       })
     );
+  }
+
+  function toggleOrderExpansion(order) {
+    const isExpanded = expandedOrderId === order.id;
+
+    setExpandedOrderId(isExpanded ? null : order.id);
+
+    if (!isExpanded && order.viewed !== true) {
+      onOrdersChange(
+        orders.map((currentOrder) =>
+          currentOrder.id === order.id ? { ...currentOrder, viewed: true } : currentOrder
+        )
+      );
+    }
+  }
+
+  function updateKitchenWaitTime(value) {
+    if (value === "Custom") {
+      setWaitTimeMode("custom");
+      return;
+    }
+
+    setWaitTimeMode("preset");
+    onKitchenWaitTimeChange(value);
+  }
+
+  function updateCustomKitchenWaitTime(value) {
+    const minutes = Number.parseInt(value, 10);
+
+    if (!Number.isNaN(minutes) && minutes > 0) {
+      onKitchenWaitTimeChange(`${minutes} Minutes`);
+    }
   }
 
   function updateProductForm(field, value) {
@@ -825,6 +876,99 @@ function AdminDashboard({
     }
   }
 
+  function renderOrderCard(order) {
+    const isExpanded = expandedOrderId === order.id;
+    const isUnviewed = order.viewed !== true;
+
+    return (
+      <article className={isUnviewed ? "orderCard unviewed" : "orderCard"} key={order.id}>
+        <button
+          className="orderSummaryButton"
+          type="button"
+          onClick={() => toggleOrderExpansion(order)}
+          aria-expanded={isExpanded}
+        >
+          <span className="orderNumberCell">
+            {order.orderNumber}
+            {isUnviewed && (
+              <span className="newOrderBadge" title="This order has not yet been reviewed by staff.">
+                New
+              </span>
+            )}
+          </span>
+          <span>{order.customerName}</span>
+          <span>{order.scheduledPickupTime}</span>
+          <span className={isUnviewed && order.status === "New" ? "orderStatusText" : `orderStatus ${order.status.toLowerCase()}`}>
+            {order.status}
+          </span>
+          <strong>${order.total.toFixed(2)}</strong>
+        </button>
+
+        {isExpanded && (
+          <div className="orderDetails">
+            <div className="orderDetailGrid">
+              <div>
+                <span>Customer Name</span>
+                <strong>{order.customerName}</strong>
+              </div>
+              <div>
+                <span>Phone Number</span>
+                <strong>{order.phoneNumber}</strong>
+              </div>
+              <div>
+                <span>Order Time</span>
+                <strong>{order.orderTime}</strong>
+              </div>
+              <div>
+                <span>Scheduled Pickup Time</span>
+                <strong>{order.scheduledPickupTime}</strong>
+              </div>
+              <div>
+                <span>Special Instructions</span>
+                <strong>{order.notes}</strong>
+              </div>
+              <div>
+                <span>Total</span>
+                <strong>${order.total.toFixed(2)}</strong>
+              </div>
+            </div>
+
+            <div className="orderedItems">
+              <strong>Items Ordered</strong>
+              {order.items.map((item) => (
+                <div className="orderedItem" key={item.id}>
+                  <span>{item.name}</span>
+                  <span>Qty {item.quantity}</span>
+                </div>
+              ))}
+            </div>
+
+            {order.readyNotification && (
+              <p className="notificationNote">
+                Ready notification queued for future Twilio SMS workflow.
+              </p>
+            )}
+
+            <div className="orderActions">
+              <button type="button" onClick={() => updateOrderStatus(order.id, "Preparing")}>
+                Mark Preparing
+              </button>
+              <button type="button" onClick={() => updateOrderStatus(order.id, "Ready")}>
+                Mark Ready
+              </button>
+              <button type="button" onClick={() => updateOrderStatus(order.id, "Completed")}>
+                Mark Completed
+              </button>
+              <button className="dangerButton" type="button" onClick={() => updateOrderStatus(order.id, "Cancelled")}>
+                Cancel Order
+              </button>
+            </div>
+          </div>
+        )}
+      </article>
+    );
+  }
+
   return (
     <section className="admin">
       <p className="eyebrow">Restaurant Operations</p>
@@ -879,30 +1023,42 @@ function AdminDashboard({
             <div className="adminPanelHeader">
               <div>
                 <p className="eyebrow">Kitchen</p>
-                <h2>Kitchen Wait Time</h2>
+                <h2>Current Wait Time</h2>
               </div>
               <span>{kitchenWaitTime}</span>
             </div>
-            <label className="formField compact">
-              Kitchen Wait Time
-              <select defaultValue="30 minutes">
-                <option>10 Minutes</option>
-                <option>20 Minutes</option>
-                <option>30 Minutes</option>
-                <option>45 Minutes</option>
-                <option>60 Minutes</option>
-                <option>Custom</option>
-              </select>
-            </label>
+            <div className="waitControl">
+              <strong>{kitchenWaitTime}</strong>
+              <label className="formField compact">
+                Change Wait Time
+                <select value={kitchenWaitSelectValue} onChange={(event) => updateKitchenWaitTime(event.target.value)}>
+                  {KITCHEN_WAIT_OPTIONS.map((option) => (
+                    <option key={option}>{option}</option>
+                  ))}
+                  <option>Custom</option>
+                </select>
+              </label>
+              {kitchenWaitSelectValue === "Custom" && (
+                <label className="formField compact">
+                  Custom Minutes
+                  <input
+                    type="number"
+                    min="1"
+                    value={parseMinutes(kitchenWaitTime)}
+                    onChange={(event) => updateCustomKitchenWaitTime(event.target.value)}
+                  />
+                </label>
+              )}
+            </div>
           </section>
 
           <section className="adminPanel">
             <div className="adminPanelHeader">
               <div>
                 <p className="eyebrow">Orders</p>
-                <h2>Order Management</h2>
+                <h2>Active Orders ({activeOrders.length})</h2>
               </div>
-              <span>{ordersToday.length} today</span>
+              <span>New, Preparing, Ready</span>
             </div>
 
             <div className="ordersList">
@@ -914,93 +1070,42 @@ function AdminDashboard({
                 <span>Total</span>
               </div>
 
-              {ordersToday.length === 0 ? (
-                <p className="emptyState">No orders have been submitted today.</p>
+              {activeOrders.length === 0 ? (
+                <p className="emptyState">No active orders right now.</p>
               ) : (
-                ordersToday.map((order) => {
-                  const isExpanded = expandedOrderId === order.id;
-
-                  return (
-                    <article className="orderCard" key={order.id}>
-                      <button
-                        className="orderSummaryButton"
-                        type="button"
-                        onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
-                        aria-expanded={isExpanded}
-                      >
-                        <span>{order.orderNumber}</span>
-                        <span>{order.customerName}</span>
-                        <span>{order.scheduledPickupTime}</span>
-                        <span className={`orderStatus ${order.status.toLowerCase()}`}>{order.status}</span>
-                        <strong>${order.total.toFixed(2)}</strong>
-                      </button>
-
-                      {isExpanded && (
-                        <div className="orderDetails">
-                          <div className="orderDetailGrid">
-                            <div>
-                              <span>Customer Name</span>
-                              <strong>{order.customerName}</strong>
-                            </div>
-                            <div>
-                              <span>Phone Number</span>
-                              <strong>{order.phoneNumber}</strong>
-                            </div>
-                            <div>
-                              <span>Order Time</span>
-                              <strong>{order.orderTime}</strong>
-                            </div>
-                            <div>
-                              <span>Scheduled Pickup Time</span>
-                              <strong>{order.scheduledPickupTime}</strong>
-                            </div>
-                            <div>
-                              <span>Special Instructions</span>
-                              <strong>{order.notes}</strong>
-                            </div>
-                            <div>
-                              <span>Total</span>
-                              <strong>${order.total.toFixed(2)}</strong>
-                            </div>
-                          </div>
-
-                          <div className="orderedItems">
-                            <strong>Items Ordered</strong>
-                            {order.items.map((item) => (
-                              <div className="orderedItem" key={item.id}>
-                                <span>{item.name}</span>
-                                <span>Qty {item.quantity}</span>
-                              </div>
-                            ))}
-                          </div>
-
-                          {order.readyNotification && (
-                            <p className="notificationNote">
-                              Ready notification queued for future Twilio SMS workflow.
-                            </p>
-                          )}
-
-                          <div className="orderActions">
-                            <button type="button" onClick={() => updateOrderStatus(order.id, "Preparing")}>
-                              Mark Preparing
-                            </button>
-                            <button type="button" onClick={() => updateOrderStatus(order.id, "Ready")}>
-                              Mark Ready
-                            </button>
-                            <button type="button" onClick={() => updateOrderStatus(order.id, "Completed")}>
-                              Mark Completed
-                            </button>
-                            <button className="dangerButton" type="button" onClick={() => updateOrderStatus(order.id, "Cancelled")}>
-                              Cancel Order
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </article>
-                  );
-                })
+                activeOrders.map(renderOrderCard)
               )}
             </div>
+          </section>
+
+          <section className="adminPanel">
+            <button
+              className="completedOrdersToggle"
+              type="button"
+              onClick={() => setCompletedOrdersExpanded(!completedOrdersExpanded)}
+              aria-expanded={completedOrdersExpanded}
+            >
+              <span>Completed Orders ({completedOrders.length})</span>
+              <strong>{completedOrdersExpanded ? "Hide" : "Show"}</strong>
+            </button>
+
+            {completedOrdersExpanded && (
+              <div className="ordersList">
+                <div className="ordersHeader">
+                  <span>Order Number</span>
+                  <span>Customer Name</span>
+                  <span>Scheduled Pickup</span>
+                  <span>Status</span>
+                  <span>Total</span>
+                </div>
+
+                {completedOrders.length === 0 ? (
+                  <p className="emptyState">No completed or cancelled orders today.</p>
+                ) : (
+                  completedOrders.map(renderOrderCard)
+                )}
+              </div>
+            )}
           </section>
         </div>
       ) : (

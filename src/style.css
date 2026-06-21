@@ -734,6 +734,17 @@ main {
   max-width: 340px;
 }
 
+.waitControl {
+  display: grid;
+  gap: 1rem;
+}
+
+.waitControl > strong {
+  color: var(--forest);
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
 .formField input,
 .formField select,
 .formField textarea {
@@ -826,6 +837,11 @@ main {
   overflow: hidden;
 }
 
+.orderCard.unviewed {
+  border-color: rgba(201, 166, 70, 0.42);
+  background: rgba(255, 250, 240, 0.78);
+}
+
 .orderSummaryButton {
   width: 100%;
   display: grid;
@@ -842,6 +858,22 @@ main {
   text-align: right;
 }
 
+.orderNumberCell {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.newOrderBadge {
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--forest);
+  padding: 0.25rem 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
 .orderStatus {
   justify-self: start;
   border-radius: 999px;
@@ -849,6 +881,11 @@ main {
   color: var(--forest);
   padding: 0.35rem 0.6rem;
   font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.orderStatusText {
+  color: var(--forest);
   font-weight: 900;
 }
 
@@ -940,6 +977,31 @@ main {
   color: rgba(16, 42, 28, 0.68);
   margin: 0;
   padding: 1rem;
+}
+
+.completedOrdersToggle {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--forest);
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  padding: 0;
+  text-align: left;
+}
+
+.completedOrdersToggle span {
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+
+.completedOrdersToggle strong {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.82);
+  padding: 0.55rem 0.75rem;
 }
 
 .managerRow,
