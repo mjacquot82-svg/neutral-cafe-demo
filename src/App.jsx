@@ -11,6 +11,7 @@ import { notifyStaff } from "./services/notificationService";
 import "./style.css";
 
 export default function App() {
+  const kitchenWaitTime = "25 Minutes";
   const [cart, setCart] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [pickupTime, setPickupTime] = useState("15 minutes");
@@ -99,6 +100,11 @@ export default function App() {
             </div>
           </section>
 
+          <section className="waitStatus" aria-label="Current kitchen wait time">
+            <Clock size={18} />
+            <span>Current Estimated Wait: {kitchenWaitTime}</span>
+          </section>
+
           <section id="specials" className="promo">
             <div className="sectionHeader">
               <div>
@@ -172,6 +178,11 @@ export default function App() {
                     <option>1 hour</option>
                   </select>
                 </label>
+
+                <div className="readyTime">
+                  <span>Estimated Ready Time</span>
+                  <strong>{pickupTime}</strong>
+                </div>
 
                 <div className="total">
                   <span>Total</span>
@@ -249,6 +260,19 @@ function OwnerPreview() {
           <h3>Future Integrations</h3>
           <p>Supabase, Clover order sync, payment confirmation, and notifications are separated into services.</p>
           <button>View Services</button>
+        </div>
+
+        <div className="adminCard">
+          <h3>Kitchen Wait Time</h3>
+          <p>Placeholder setting for showing customers the current estimated kitchen wait.</p>
+          <select defaultValue="30 minutes">
+            <option>10 minutes</option>
+            <option>20 minutes</option>
+            <option>30 minutes</option>
+            <option>45 minutes</option>
+            <option>60 minutes</option>
+            <option>Custom</option>
+          </select>
         </div>
       </div>
     </section>
