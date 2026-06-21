@@ -108,7 +108,7 @@ export default function App() {
             </div>
             <div className="clubhouseInfo">
               <p>
-                Enjoy breakfast, lunch, and clubhouse favourites before your round, at the turn, or after the game.
+                Enjoy fresh food and beverages before your round, at the turn, or after the game.
                 Order ahead and pick up when ready.
               </p>
               <span>Fresh food, patio seating, and quick pickup from the Walkerton Golf &amp; Curling Club Restaurant.</span>
