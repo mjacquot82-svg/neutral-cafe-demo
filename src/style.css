@@ -597,6 +597,57 @@ main {
   margin-top: 1.5rem;
 }
 
+.adminTabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.adminTab {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.72);
+  color: var(--forest);
+  padding: 0.75rem 1rem;
+  white-space: nowrap;
+  font-weight: 900;
+}
+
+.adminTab.active {
+  background: var(--forest);
+  color: white;
+}
+
+.reportGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.reportCard {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.88);
+  box-shadow: 0 18px 45px rgba(16, 42, 28, 0.08);
+  padding: 1rem;
+}
+
+.reportCard span {
+  display: block;
+  color: rgba(16, 42, 28, 0.68);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.reportCard strong {
+  display: block;
+  margin-top: 0.45rem;
+  font-size: 1.65rem;
+  line-height: 1;
+}
+
 .adminPanel {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -646,6 +697,10 @@ main {
 
 .formField.wide {
   grid-column: 1 / -1;
+}
+
+.formField.compact {
+  max-width: 340px;
 }
 
 .formField input,
@@ -705,6 +760,157 @@ main {
   gap: 0.65rem;
 }
 
+.ordersList,
+.managerTable {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.ordersHeader,
+.managerTableHeader {
+  display: grid;
+  align-items: center;
+  gap: 0.75rem;
+  color: rgba(16, 42, 28, 0.62);
+  font-size: 0.76rem;
+  font-weight: 900;
+  padding: 0 0.85rem;
+  text-transform: uppercase;
+}
+
+.ordersHeader,
+.orderSummaryButton {
+  grid-template-columns: 1fr 1.1fr 1fr 0.8fr 0.7fr;
+}
+
+.managerTableHeader,
+.productManagerRow {
+  grid-template-columns: minmax(180px, 1.5fr) 1fr 0.55fr 0.65fr 0.75fr 1.4fr;
+}
+
+.orderCard {
+  border: 1px solid rgba(16, 42, 28, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.52);
+  overflow: hidden;
+}
+
+.orderSummaryButton {
+  width: 100%;
+  display: grid;
+  align-items: center;
+  gap: 0.75rem;
+  border: 0;
+  background: transparent;
+  color: var(--forest);
+  padding: 0.9rem;
+  text-align: left;
+}
+
+.orderSummaryButton strong {
+  text-align: right;
+}
+
+.orderStatus {
+  justify-self: start;
+  border-radius: 999px;
+  background: rgba(16, 42, 28, 0.08);
+  color: var(--forest);
+  padding: 0.35rem 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.orderStatus.preparing {
+  background: rgba(201, 166, 70, 0.18);
+  color: #6f5316;
+}
+
+.orderStatus.ready {
+  background: rgba(47, 107, 63, 0.14);
+  color: var(--fairway);
+}
+
+.orderStatus.completed {
+  background: rgba(16, 42, 28, 0.12);
+  color: var(--forest);
+}
+
+.orderStatus.cancelled {
+  background: rgba(125, 33, 24, 0.1);
+  color: #7d2118;
+}
+
+.orderDetails {
+  border-top: 1px solid rgba(16, 42, 28, 0.1);
+  padding: 1rem;
+}
+
+.orderDetailGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.orderDetailGrid div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.orderDetailGrid span {
+  color: rgba(16, 42, 28, 0.62);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.orderedItems {
+  border-top: 1px solid rgba(16, 42, 28, 0.1);
+  border-bottom: 1px solid rgba(16, 42, 28, 0.1);
+  display: grid;
+  gap: 0.45rem;
+  margin: 1rem 0;
+  padding: 1rem 0;
+}
+
+.orderedItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.notificationNote {
+  border: 1px solid rgba(47, 107, 63, 0.16);
+  border-radius: 8px;
+  background: rgba(47, 107, 63, 0.08);
+  color: var(--fairway);
+  font-weight: 800;
+  margin: 0 0 1rem;
+  padding: 0.75rem;
+}
+
+.orderActions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.orderActions button {
+  border: 1px solid var(--line);
+  background: rgba(255, 250, 240, 0.82);
+  color: var(--forest);
+  border-radius: 8px;
+  padding: 0.62rem 0.75rem;
+  font-weight: 900;
+}
+
+.emptyState {
+  border: 1px dashed rgba(16, 42, 28, 0.22);
+  border-radius: 8px;
+  color: rgba(16, 42, 28, 0.68);
+  margin: 0;
+  padding: 1rem;
+}
+
 .managerRow,
 .promotionManagerCard {
   display: grid;
@@ -715,6 +921,10 @@ main {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.52);
   padding: 0.85rem;
+}
+
+.productManagerRow {
+  grid-template-columns: minmax(180px, 1.5fr) 1fr 0.55fr 0.65fr 0.75fr 1.4fr;
 }
 
 .promotionManagerCard {
@@ -805,14 +1015,29 @@ main {
 
   .productGrid,
   .adminGrid,
-  .promotionList {
+  .promotionList,
+  .reportGrid {
     grid-template-columns: 1fr;
   }
 
   .formGrid,
   .managerRow,
-  .promotionManagerCard {
+  .promotionManagerCard,
+  .ordersHeader,
+  .orderSummaryButton,
+  .managerTableHeader,
+  .productManagerRow,
+  .orderDetailGrid {
     grid-template-columns: 1fr;
+  }
+
+  .ordersHeader,
+  .managerTableHeader {
+    display: none;
+  }
+
+  .orderSummaryButton strong {
+    text-align: left;
   }
 
   .adminPanelHeader {

@@ -13,7 +13,8 @@ import "./style.css";
 
 const STORAGE_KEYS = {
   products: "wgcc-managed-products",
-  promotions: "wgcc-managed-promotions"
+  promotions: "wgcc-managed-promotions",
+  orders: "wgcc-managed-orders"
 };
 
 const ADMIN_CATEGORIES = [
@@ -40,6 +41,8 @@ const emptyPromotionForm = {
   message: "",
   cta: ""
 };
+
+const ORDER_STATUSES = ["New", "Preparing", "Ready", "Completed", "Cancelled"];
 
 function createId(value, prefix) {
   const slug = value
@@ -79,6 +82,49 @@ function persistList(key, value) {
   window.localStorage.setItem(key, JSON.stringify(value));
 }
 
+function createOrderRecord({ items, total, scheduledPickup }) {
+  const createdAt = new Date();
+
+  return {
+    id: createId("wgcc-order", "order"),
+    orderNumber: `WGCC-${String(createdAt.getTime()).slice(-6)}`,
+    customerName: "Guest Customer",
+    phoneNumber: "Not provided",
+    orderTime: formatPickupTime(createdAt),
+    createdAt: createdAt.toISOString(),
+    scheduledPickupTime: scheduledPickup,
+    status: "New",
+    notes: "No notes",
+    total,
+    items: items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price
+    }))
+  };
+}
+
+function isToday(isoDate) {
+  const date = new Date(isoDate);
+  const today = new Date();
+
+  return date.toDateString() === today.toDateString();
+}
+
+function queueReadyNotification(order) {
+  // Future Twilio SMS integration:
+  // Send this message to order.phoneNumber when SMS credentials and consent capture are added.
+  const message = "Your order is ready for pickup at the Walkerton Golf & Curling Club Restaurant.";
+
+  return {
+    orderId: order.id,
+    channel: "sms",
+    provider: "twilio",
+    message
+  };
+}
+
 export default function App() {
   const kitchenWaitTime = "25 Minutes";
   const [cart, setCart] = useState([]);
@@ -93,6 +139,9 @@ export default function App() {
   const [managedPromotions, setManagedPromotions] = useState(() =>
     loadStoredList(STORAGE_KEYS.promotions, mockPromotions)
   );
+  const [managedOrders, setManagedOrders] = useState(() =>
+    loadStoredList(STORAGE_KEYS.orders, [])
+  );
 
   useEffect(() => {
     persistList(STORAGE_KEYS.products, managedProducts);
@@ -101,6 +150,10 @@ export default function App() {
   useEffect(() => {
     persistList(STORAGE_KEYS.promotions, managedPromotions);
   }, [managedPromotions]);
+
+  useEffect(() => {
+    persistList(STORAGE_KEYS.orders, managedOrders);
+  }, [managedOrders]);
 
   const activeProducts = useMemo(
     () => managedProducts.filter((product) => product.active !== false && product.available !== false),
@@ -152,6 +205,14 @@ export default function App() {
       cloverOrderId: clover.cloverOrderId
     });
 
+    setManagedOrders((orders) => [
+      createOrderRecord({
+        items: cart,
+        total,
+        scheduledPickup: pickupSchedule.scheduledPickup
+      }),
+      ...orders
+    ]);
     setCart([]);
   }
 
@@ -186,7 +247,7 @@ export default function App() {
 
         <button className="ghostButton" onClick={() => setAdminMode(!adminMode)}>
           <Settings size={16} />
-          {adminMode ? "Customer View" : "Owner Preview"}
+          {adminMode ? "Customer View" : "Admin"}
         </button>
       </header>
 
@@ -388,11 +449,14 @@ export default function App() {
           )}
         </>
       ) : (
-        <OwnerPreview
+        <AdminDashboard
           products={managedProducts}
           promotions={managedPromotions}
+          orders={managedOrders}
+          kitchenWaitTime={kitchenWaitTime}
           onProductsChange={setManagedProducts}
           onPromotionsChange={setManagedPromotions}
+          onOrdersChange={setManagedOrders}
         />
       )}
     </main>
@@ -455,11 +519,26 @@ function ProductCard({ product, onAdd }) {
   );
 }
 
-function OwnerPreview({ products, promotions, onProductsChange, onPromotionsChange }) {
+function AdminDashboard({
+  products,
+  promotions,
+  orders,
+  kitchenWaitTime,
+  onProductsChange,
+  onPromotionsChange,
+  onOrdersChange
+}) {
+  const [activeAdminTab, setActiveAdminTab] = useState("orders");
   const [productForm, setProductForm] = useState(emptyProductForm);
   const [editingProductId, setEditingProductId] = useState(null);
   const [promotionForm, setPromotionForm] = useState(emptyPromotionForm);
   const [editingPromotionId, setEditingPromotionId] = useState(null);
+  const [expandedOrderId, setExpandedOrderId] = useState(null);
+
+  const ordersToday = useMemo(() => orders.filter((order) => isToday(order.createdAt)), [orders]);
+  const revenueOrders = ordersToday.filter((order) => order.status !== "Cancelled");
+  const revenueToday = revenueOrders.reduce((sum, order) => sum + order.total, 0);
+  const averageOrderValue = revenueOrders.length > 0 ? revenueToday / revenueOrders.length : 0;
 
   const currentCategoryOptions = useMemo(() => {
     if (productForm.category && !ADMIN_CATEGORIES.includes(productForm.category)) {
@@ -468,6 +547,24 @@ function OwnerPreview({ products, promotions, onProductsChange, onPromotionsChan
 
     return ADMIN_CATEGORIES;
   }, [productForm.category]);
+
+  function updateOrderStatus(orderId, status) {
+    if (!ORDER_STATUSES.includes(status)) return;
+
+    onOrdersChange(
+      orders.map((order) => {
+        if (order.id !== orderId) return order;
+
+        const updatedOrder = { ...order, status };
+
+        if (status === "Ready") {
+          updatedOrder.readyNotification = queueReadyNotification(updatedOrder);
+        }
+
+        return updatedOrder;
+      })
+    );
+  }
 
   function updateProductForm(field, value) {
     setProductForm((current) => ({ ...current, [field]: value }));
@@ -602,14 +699,185 @@ function OwnerPreview({ products, promotions, onProductsChange, onPromotionsChan
 
   return (
     <section className="admin">
-      <p className="eyebrow">Owner tools preview</p>
-      <h1>Catalog & Promotions</h1>
+      <p className="eyebrow">Restaurant Operations</p>
+      <h1>Admin</h1>
       <p className="adminIntro">
-        Manage menu items and clubhouse promotions for the ordering experience. Changes are stored locally in this browser for the board demo.
+        Track daily orders, kitchen status, menu availability, and clubhouse promotions from one local operations dashboard.
       </p>
 
-      <div className="adminStack">
-        <section className="adminPanel">
+      <div className="adminTabs" role="tablist" aria-label="Admin sections">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeAdminTab === "orders"}
+          className={activeAdminTab === "orders" ? "adminTab active" : "adminTab"}
+          onClick={() => setActiveAdminTab("orders")}
+        >
+          Orders
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeAdminTab === "catalog"}
+          className={activeAdminTab === "catalog" ? "adminTab active" : "adminTab"}
+          onClick={() => setActiveAdminTab("catalog")}
+        >
+          Catalog & Promotions
+        </button>
+      </div>
+
+      {activeAdminTab === "orders" ? (
+        <div className="adminStack">
+          <section className="reportGrid" aria-label="Daily reporting">
+            <article className="reportCard">
+              <span>Orders Today</span>
+              <strong>{ordersToday.length}</strong>
+            </article>
+            <article className="reportCard">
+              <span>Revenue Today</span>
+              <strong>${revenueToday.toFixed(2)}</strong>
+            </article>
+            <article className="reportCard">
+              <span>Average Order Value</span>
+              <strong>${averageOrderValue.toFixed(2)}</strong>
+            </article>
+            <article className="reportCard">
+              <span>Current Kitchen Wait Time</span>
+              <strong>{kitchenWaitTime}</strong>
+            </article>
+          </section>
+
+          <section className="adminPanel">
+            <div className="adminPanelHeader">
+              <div>
+                <p className="eyebrow">Kitchen</p>
+                <h2>Kitchen Wait Time</h2>
+              </div>
+              <span>{kitchenWaitTime}</span>
+            </div>
+            <label className="formField compact">
+              Kitchen Wait Time
+              <select defaultValue="30 minutes">
+                <option>10 Minutes</option>
+                <option>20 Minutes</option>
+                <option>30 Minutes</option>
+                <option>45 Minutes</option>
+                <option>60 Minutes</option>
+                <option>Custom</option>
+              </select>
+            </label>
+          </section>
+
+          <section className="adminPanel">
+            <div className="adminPanelHeader">
+              <div>
+                <p className="eyebrow">Orders</p>
+                <h2>Order Management</h2>
+              </div>
+              <span>{ordersToday.length} today</span>
+            </div>
+
+            <div className="ordersList">
+              <div className="ordersHeader">
+                <span>Order Number</span>
+                <span>Customer Name</span>
+                <span>Scheduled Pickup</span>
+                <span>Status</span>
+                <span>Total</span>
+              </div>
+
+              {ordersToday.length === 0 ? (
+                <p className="emptyState">No orders have been submitted today.</p>
+              ) : (
+                ordersToday.map((order) => {
+                  const isExpanded = expandedOrderId === order.id;
+
+                  return (
+                    <article className="orderCard" key={order.id}>
+                      <button
+                        className="orderSummaryButton"
+                        type="button"
+                        onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
+                        aria-expanded={isExpanded}
+                      >
+                        <span>{order.orderNumber}</span>
+                        <span>{order.customerName}</span>
+                        <span>{order.scheduledPickupTime}</span>
+                        <span className={`orderStatus ${order.status.toLowerCase()}`}>{order.status}</span>
+                        <strong>${order.total.toFixed(2)}</strong>
+                      </button>
+
+                      {isExpanded && (
+                        <div className="orderDetails">
+                          <div className="orderDetailGrid">
+                            <div>
+                              <span>Customer Name</span>
+                              <strong>{order.customerName}</strong>
+                            </div>
+                            <div>
+                              <span>Phone Number</span>
+                              <strong>{order.phoneNumber}</strong>
+                            </div>
+                            <div>
+                              <span>Order Time</span>
+                              <strong>{order.orderTime}</strong>
+                            </div>
+                            <div>
+                              <span>Scheduled Pickup Time</span>
+                              <strong>{order.scheduledPickupTime}</strong>
+                            </div>
+                            <div>
+                              <span>Notes</span>
+                              <strong>{order.notes}</strong>
+                            </div>
+                            <div>
+                              <span>Total</span>
+                              <strong>${order.total.toFixed(2)}</strong>
+                            </div>
+                          </div>
+
+                          <div className="orderedItems">
+                            <strong>Items Ordered</strong>
+                            {order.items.map((item) => (
+                              <div className="orderedItem" key={item.id}>
+                                <span>{item.name}</span>
+                                <span>Qty {item.quantity}</span>
+                              </div>
+                            ))}
+                          </div>
+
+                          {order.readyNotification && (
+                            <p className="notificationNote">
+                              Ready notification queued for future Twilio SMS workflow.
+                            </p>
+                          )}
+
+                          <div className="orderActions">
+                            <button type="button" onClick={() => updateOrderStatus(order.id, "Preparing")}>
+                              Mark Preparing
+                            </button>
+                            <button type="button" onClick={() => updateOrderStatus(order.id, "Ready")}>
+                              Mark Ready
+                            </button>
+                            <button type="button" onClick={() => updateOrderStatus(order.id, "Completed")}>
+                              Mark Completed
+                            </button>
+                            <button className="dangerButton" type="button" onClick={() => updateOrderStatus(order.id, "Cancelled")}>
+                              Cancel Order
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </article>
+                  );
+                })
+              )}
+            </div>
+          </section>
+        </div>
+      ) : (
+        <div className="adminStack">
+          <section className="adminPanel">
           <div className="adminPanelHeader">
             <div>
               <p className="eyebrow">Products</p>
@@ -693,16 +961,26 @@ function OwnerPreview({ products, promotions, onProductsChange, onPromotionsChan
             </div>
           </form>
 
-          <div className="managerList" aria-label="Managed menu products">
+          <div className="managerTable" aria-label="Managed menu products">
+            <div className="managerTableHeader">
+              <span>Name</span>
+              <span>Category</span>
+              <span>Price</span>
+              <span>Featured</span>
+              <span>Status</span>
+              <span>Actions</span>
+            </div>
             {products.map((product) => {
               const isActive = product.active !== false && product.available !== false;
 
               return (
-                <article className="managerRow" key={product.id}>
+                <article className="managerRow productManagerRow" key={product.id}>
                   <div className="managerMeta">
                     <strong>{product.name}</strong>
-                    <span>{product.category} • ${product.price.toFixed(2)}</span>
                   </div>
+                  <span>{product.category}</span>
+                  <span>${product.price.toFixed(2)}</span>
+                  <span>{product.featured ? "Yes" : "No"}</span>
                   <span className={isActive ? "statusPill" : "statusPill inactive"}>
                     {isActive ? "Active" : "Inactive"}
                   </span>
@@ -719,9 +997,9 @@ function OwnerPreview({ products, promotions, onProductsChange, onPromotionsChan
               );
             })}
           </div>
-        </section>
+          </section>
 
-        <section className="adminPanel">
+          <section className="adminPanel">
           <div className="adminPanelHeader">
             <div>
               <p className="eyebrow">Promotions</p>
@@ -789,28 +1067,9 @@ function OwnerPreview({ products, promotions, onProductsChange, onPromotionsChan
               </article>
             ))}
           </div>
-        </section>
-
-        <section className="adminGrid">
-          <div className="adminCard">
-            <h3>Kitchen Wait Time</h3>
-            <p>Placeholder setting for showing customers the current estimated kitchen wait.</p>
-            <select defaultValue="30 minutes">
-              <option>10 minutes</option>
-              <option>20 minutes</option>
-              <option>30 minutes</option>
-              <option>45 minutes</option>
-              <option>60 minutes</option>
-              <option>Custom</option>
-            </select>
-          </div>
-
-          <div className="adminCard">
-            <h3>Future Integrations</h3>
-            <p>Supabase login, Clover order sync, payment confirmation, and staff notifications remain separated into services.</p>
-          </div>
-        </section>
-      </div>
+          </section>
+        </div>
+      )}
     </section>
   );
 }
