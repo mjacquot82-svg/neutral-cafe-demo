@@ -4,7 +4,6 @@ import wgccLogo from "./assets/wgcc-logo.webp";
 import outdoorDiningImage from "./assets/wgcc-outdoor-dining.webp";
 import { businessConfig } from "./config/businessConfig";
 import { mockProducts } from "./data/mockProducts";
-import { mockPromotions } from "./data/mockPromotions";
 import { addToCart, removeFromCart, getCartTotal } from "./stores/cartStore";
 import { confirmPayment } from "./services/paymentService";
 import { createCloverOrder } from "./services/cloverService";
@@ -103,18 +102,16 @@ export default function App() {
           <section id="specials" className="promo">
             <div className="sectionHeader">
               <div>
-                <p className="eyebrow">Clubhouse Specials</p>
-                <h2>Featured promotions</h2>
+                <p className="eyebrow">Clubhouse Restaurant</p>
+                <h2>Clubhouse Dining</h2>
               </div>
             </div>
-            <div className="promoGrid">
-              {mockPromotions.map((promotion) => (
-                <article className="promoCard" key={promotion.id}>
-                  <h3>{promotion.title}</h3>
-                  <p>{promotion.message}</p>
-                  <button className="secondaryButton">{promotion.cta}</button>
-                </article>
-              ))}
+            <div className="clubhouseInfo">
+              <p>
+                Enjoy breakfast, lunch, and clubhouse favourites before your round, at the turn, or after the game.
+                Order ahead and pick up when ready.
+              </p>
+              <span>Fresh food, patio seating, and quick pickup from the Walkerton Golf &amp; Curling Club Restaurant.</span>
             </div>
           </section>
 
